@@ -1,5 +1,5 @@
 <template>
-	<div class="page">
+	<div class="fantasy-picker-page">
 		<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
 
 			<a class="navbar-brand" href="#">Fantasy Stats Man</a>
@@ -10,10 +10,10 @@
 			<div class="collapse navbar-collapse" id="navbarsExampleDefault">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item active">
-						<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+						<a class="nav-link" href="#"></a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#">Settings</a>
+						<a class="nav-link" href="#"></a>
 					</li>
 				</ul>
 			</div>
@@ -24,39 +24,39 @@
 				<nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
 					<ul class="nav nav-pills flex-column">
 						<li class="nav-item">
-							<a class="nav-link active" href="#">Import <span class="sr-only">(current)</span></a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 1}" @click="changeScreen(1)">Import <icon v-if="$store.state.players.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#">Players</a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#">Categories</a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3}" @click="changeScreen(3)">Configure </a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Categories</a>
 						</li>
 					</ul>
 				</nav>
 
-				<main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
-					<h1>Dashboard</h1>
+				<main class="col-sm-9 ml-sm-auto col-md-10" role="main">
+
+					<template v-if="$store.state.config.screen == 1">
+						<import-data></import-data>
+					</template>
+
+					<template v-if=" $store.state.config.screen == 2">
+						<players></players>
+					</template>
+
+					<template v-if="$store.state.config.screen == 3">
+						<config></config>
+					</template>
+
+					<template v-if="$store.state.config.screen == 4">
+						Categories
+					</template>
 
 
-
-					<counter></counter>
-					<import-data></import-data>
-					Player count {{ totalPlayers }}<br />
-					Cool tabs<br />
-					Table of data<br />
-
-
-
-					<section class="row text-center placeholders">
-						<div class="col-6 col-sm-3 placeholder">
-
-						</div>
-					</section>
-
-					<h2>Section title</h2>
-					<div class="table-responsive">
-					</div>
 				</main>
 			</div>
 		</div>
@@ -68,19 +68,29 @@
 </template>
 
 <script>
-    import Counter from 'components/Counter';
     import ImportData from 'components/ImportData';
+    import Config from 'components/Config';
+    import Players from 'components/Players';
 
     export default {
-        computed: {
-            totalPlayers() {
-                return this.$store.state.players.length;
-            }
-        },
+        methods: {
+        	changeScreen(newScreen) {
+        	    this.$store.dispatch('changeScreen', newScreen);
+			}
+		},
+        computed: {},
         components: {
-            Counter,
-            ImportData
+            ImportData,
+			Config,
+			Players
         }
     }
 </script>
+<style lang="scss">
+.fantasy-picker-page{
+	button{
+		cursor: pointer;
+	}
+}
+</style>
 
