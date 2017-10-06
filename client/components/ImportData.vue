@@ -1,8 +1,15 @@
 <template>
     <div class="import-data-wrapper">
-        Import CSV
-        <input type="file" id="importFile" value="Import" /><br />
-        <button @click="importPlayersFile" class="btn btn-primary"> Upload &nbsp; <icon name="upload"></icon></button>
+        <h2>Import</h2>
+        <section class="row ">
+            <div class="col-6">
+                <input type="file" id="importFile" value="Import" /><br />
+            </div>
+            <div class="col-6">
+                <button @click="importPlayersFile" class="btn btn-primary"> Upload &nbsp; <icon name="upload"></icon></button>
+            </div>
+        </section>
+
     </div>
 </template>
 
@@ -44,6 +51,5 @@
 
 <style lang="scss">
     .import-data-wrapper {
-        color:red;
     }
 </style>
