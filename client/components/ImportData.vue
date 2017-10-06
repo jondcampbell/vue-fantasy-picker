@@ -18,12 +18,13 @@
                 }
 
                 var fr = new FileReader();
+                let vuethis = this;
 
                 fr.onload = function (e) {
-
                     papaparse.parse(e.target.result, {
                         complete: function(results) {
-                            console.log("Finished:", results.data);
+                            console.log("Finished");
+                            vuethis.$store.dispatch('importPlayers', results.data);
                         }
                     });
                     /*

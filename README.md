@@ -10,6 +10,14 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 - Calculate each players variance from category average
 - Highlight top players in each category and players who are in top X players in the most categories
 
+## Phase 1
+- Geared towards nba head to head fantasy team that needs to win multiple categories each week
+
+## Phase 2
+- Ability to dynamically set the players name column, scoring stats columns and the non-scoring stats columns
+- More color schemes!
+- Ability to work for more sports and fantasy modes 
+- Ability to draft a dream team by generating loads of teams and figuring out the best one
 
 
 
