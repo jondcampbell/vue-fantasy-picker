@@ -27,13 +27,13 @@
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 1}" @click="changeScreen(1)">Import <icon v-if="$store.state.players.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players</a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players <icon v-if="$store.state.scores.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3}" @click="changeScreen(3)">Configure </a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3}" @click="changeScreen(3)">Player Rankings</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Categories</a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Configure </a>
 						</li>
 					</ul>
 				</nav>
@@ -48,12 +48,12 @@
 						<players></players>
 					</template>
 
-					<template v-if="$store.state.config.screen == 3">
+					<template v-if="$store.state.config.screen == 4">
 						<config></config>
 					</template>
 
-					<template v-if="$store.state.config.screen == 4">
-						Categories
+					<template v-if="$store.state.config.screen == 3">
+						Player Rankings
 					</template>
 
 
