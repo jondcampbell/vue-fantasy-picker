@@ -3,7 +3,9 @@
         <h2>Import</h2>
         <section class="row ">
             <div class="col-6">
-                <input type="file" id="importFile" value="Import" /><br />
+                <label class="btn btn-primary">
+                    Browse <input type="file" id="importFile" value="Import" hidden/>
+                </label>
             </div>
             <div class="col-6">
                 <button @click="importPlayersFile" class="btn btn-primary"> Upload &nbsp; <icon name="upload"></icon></button>
@@ -34,19 +36,16 @@
                             vuethis.$store.dispatch('importPlayers', results.data);
                         }
                     });
-                    /*
-                    var result = JSON.parse(e.target.result);
-                    console.log(result);
-                    */
-                    //this_vue.quote_items = result;
 
-                    sweetAlert("Woot!", "We imported your items", "success");
+                    sweetAlert("Woot!", "We imported your players", "success");
                 }
 
                 fr.readAsText(files.item(0));
             }
         }
     }
+    // TODO: Add nice js for feedback once they select an import file
+    // https://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3
 </script>
 
 <style lang="scss">
