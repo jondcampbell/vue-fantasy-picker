@@ -1,6 +1,6 @@
 <template>
     <div class="players-wrapper">
-        <h2>Players</h2>
+        <h2>Players <button @click="evaluatePlayers()" class="btn btn-primary float-right">Evaluate Players</button></h2>
         <section class="row ">
             <div class="col-12">
                 <strong>Player count {{ totalPlayers }}</strong><br />
@@ -32,7 +32,10 @@
     import PlayerRow from 'components/PlayerRow';
     export default {
         methods: {
-
+            evaluatePlayers() {
+                this.$store.dispatch('evaluatePlayers');
+                sweetAlert("Woot!", "We evaluated your players", "success");
+            }
         },
         computed: {
             totalPlayers() {

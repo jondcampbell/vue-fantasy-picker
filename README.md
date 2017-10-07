@@ -14,10 +14,11 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 - Geared towards nba head to head fantasy team that needs to win multiple categories each week
 
 ## Phase 2
-- Ability to dynamically set the players name column, scoring stats columns and the non-scoring stats columns
+- Ability to dynamically set the players name column, scoring stats columns and the non-scoring stats columns. This can be done by clicking little icon on column title and setting option.
 - More color schemes!
 - Ability to work for more sports and fantasy modes 
 - Ability to draft a dream team by generating loads of teams and figuring out the best one
+- Team configuration of positions
 
 
 
