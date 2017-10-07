@@ -5,7 +5,12 @@
             <div class="col-6">
                 <h5>General</h5>
                 Average Mode: {{ $store.state.config.average_mode }}<br />
+                Teams in League: {{ $store.state.config.teams_in_league }}<br />
+                Players per team: {{ $store.state.config.players_per_team }}<br />
                 Top Players: {{ $store.state.config.top_players }}<br />
+
+                <strong>Positions: </strong>
+
 
             </div>
             <div class="col-6">
