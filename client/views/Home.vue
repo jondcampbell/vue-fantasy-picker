@@ -27,7 +27,7 @@
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 1}" @click="changeScreen(1)">Import <icon v-if="$store.state.players.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players <icon v-if="$store.state.scores.length > 0" name="check"></icon></a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players <icon v-if="Object.keys($store.state.scores).length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3}" @click="changeScreen(3)">Player Rankings</a>
@@ -48,12 +48,12 @@
 						<players></players>
 					</template>
 
-					<template v-if="$store.state.config.screen == 4">
-						<config></config>
+					<template v-if="$store.state.config.screen == 3 && Object.keys($store.state.scores).length > 0">
+						<scores></scores>
 					</template>
 
-					<template v-if="$store.state.config.screen == 3">
-						Player Rankings
+					<template v-if="$store.state.config.screen == 4">
+						<config></config>
 					</template>
 
 
@@ -71,6 +71,7 @@
     import ImportData from 'components/ImportData';
     import Config from 'components/Config';
     import Players from 'components/Players';
+    import Scores from 'components/Scores';
 
     export default {
         methods: {
@@ -82,7 +83,8 @@
         components: {
             ImportData,
 			Config,
-			Players
+			Players,
+			Scores
         }
     }
 </script>

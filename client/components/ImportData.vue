@@ -32,7 +32,6 @@
                 fr.onload = function (e) {
                     papaparse.parse(e.target.result, {
                         complete: function(results) {
-                            console.log("Finished");
                             vuethis.$store.dispatch('importPlayers', results.data);
                         }
                     });

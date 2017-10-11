@@ -8,6 +8,7 @@
                 Teams in League: {{ $store.state.config.teams_in_league }}<br />
                 Players per team: {{ $store.state.config.players_per_team }}<br />
                 Top Players: {{ $store.state.config.top_players }}<br />
+                Minimum Games Played: {{ $store.state.config.min_games_played }}<br />
 
                 <strong>Positions: </strong>
 

@@ -30,6 +30,8 @@
 
 <script>
     import PlayerRow from 'components/PlayerRow';
+    import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
+
     export default {
         methods: {
             evaluatePlayers() {
