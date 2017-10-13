@@ -15,6 +15,15 @@ const state = {
 		negative_columns: [
 			26
 		],
+		yearly_total_columns: [
+			11,
+			23,
+			24,
+			25,
+			26,
+			27,
+			29
+		],
 		key_columns:[
 			10,
 			11,
@@ -28,7 +37,6 @@ const state = {
 		], // Hardcoded for now
 		games_column: 5, // Hardcoded for now
 		pos_column: 2 // Hardcoded for now
-		// TODO: Add in array of columns that are for total season and need to be converted to per game
 	},
 	players: [],
 	columns: [],
@@ -41,7 +49,24 @@ const mutations = {
 		state.columns = columns;
 	},
 	SET_PLAYERS(state, players) {
-		// TODO Loop players and get rid of the \whatever in the names
+
+		let nameColumn = state.config.name_column;
+		players.forEach(function(player,playerIndex) {
+			// Fix player names
+			let name = player[nameColumn];
+			let junk = name.indexOf('\\');
+			let cleanName = name.substring(0, junk);
+
+			// Set the new name
+			players[playerIndex][nameColumn] = cleanName;
+
+			let gamesPlayed = player[state.config.games_column];
+
+			// Adjust the yearly totals to be based on games played
+			state.config.yearly_total_columns.forEach(function(column, columnIndex) {
+				players[playerIndex][column] = roundFloat(player[column] / gamesPlayed, 4);
+            });
+		});
 
 		// TODO: convert some stats to be divided by the games played
 		state.players = players;

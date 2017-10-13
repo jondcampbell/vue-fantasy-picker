@@ -21,6 +21,7 @@
                 Games Column: {{ $store.state.config.games }}<br />
                 Key Columns: {{ $store.state.config.key_columns }}<br />
                 Negative Columns: {{ $store.state.config.negative_columns }}<br />
+                Yearly Total Columns: {{ $store.state.config.yearly_total_columns }}<br />
             </div>
         </section>
 
