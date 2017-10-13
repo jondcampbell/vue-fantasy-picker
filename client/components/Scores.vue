@@ -2,25 +2,25 @@
     <div class="scores-wrapper">
         <section class="row ">
             <div class="col-12">
+                <h3>Ranking players by {{ $store.getters.activeCategoryName }}</h3>
                 <strong>Scored players count {{ totalScoredPlayers }}</strong><br />
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
                         <thead class="thead-inverse">
                             <tr>
-                                <!-- TODO: Fix this so we are looking at just key columns -->
                                 <th>Name</th>
                                 <th>Games Played</th>
                                 <th>Position</th>
-                                <th v-for="(column, index) in keyColumns">{{column}}</th>
+                                <th v-for="(column, index) in $store.getters.keyColumns">{{column}}</th>
                                 <th>Average Score</th>
-                                <th>Above Average</th>
+                                <th>Above Average Scores</th>
                             </tr>
                         </thead>
                         <tbody>
                             <score-row
                             class=""
                             ref="score_items"
-                            v-for="(scoreItem, index) in $store.state.scores"
+                            v-for="(scoreItem, index) in $store.getters.sortedPlayerScores($store.state.active_category)"
                             v-bind:key="index"
                             v-bind:scoreData="scoreItem.scoreData"
                             v-bind:playerId="scoreItem.playerId"
@@ -41,13 +41,6 @@
     export default {
         methods: {},
         computed: {
-            keyColumns(){
-                let temp_store = this.$store;
-                return this.$store.state.columns.filter(function(column, index) {
-                    // Check if this player has played enough games
-                    return temp_store.state.config.key_columns.includes(index);
-                });
-            },
             totalScoredPlayers() {
                 return this.$store.state.scores.length;
             }

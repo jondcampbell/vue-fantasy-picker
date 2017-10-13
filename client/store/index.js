@@ -41,7 +41,8 @@ const state = {
 	players: [],
 	columns: [],
 	column_averages:{},
-	scores: []
+	scores: [],
+	active_category: 'total'
 };
 
 const mutations = {
@@ -65,7 +66,7 @@ const mutations = {
 			// Adjust the yearly totals to be based on games played
 			state.config.yearly_total_columns.forEach(function(column, columnIndex) {
 				players[playerIndex][column] = roundFloat(player[column] / gamesPlayed, 4);
-            });
+			});
 		});
 
 		// TODO: convert some stats to be divided by the games played
@@ -73,6 +74,9 @@ const mutations = {
 	},
 	CHANGE_SCREEN(state, screen) {
 		state.config.screen =  screen;
+	},
+	CHANGE_ACTIVE_CATEGORY(state,category) {
+		state.active_category = category;
 	},
 	SET_SCORE(state, {playerId, score}) {
 		// Find existing player index if it exists
@@ -105,8 +109,13 @@ const actions = {
 		commit('SET_PLAYERS', players);
 	},
 	changeScreen({ commit, state }, newScreen) {
-		if ( state.config.screen != newScreen) {
+		if (state.config.screen != newScreen) {
 			commit('CHANGE_SCREEN', newScreen);
+		}
+	},
+	changeActiveCategory({ commit, state }, category) {
+		if (state.active_category != category) {
+			commit('CHANGE_ACTIVE_CATEGORY', category);
 		}
 	},
 	evaluatePlayers({ commit, state, dispatch }) {
@@ -259,8 +268,28 @@ const getters = {
 
 		return categoryAverage;
 	},
-	playerTotalScore(playerId) {
-		// Add up the score for the player
+	sortedPlayerScores: (state, getters) => (category) => {
+		// Make a copy of the array
+		let scores = state.scores.concat();
+		//Sort the players scores
+		let sortedPlayers = scores.sort(function(a, b) {
+			return b.scoreData[category] - a.scoreData[category];
+		});
+
+		return sortedPlayers;
+	},
+	keyColumns: (state, getters) => {
+		return state.columns.filter(function(column, index) {
+			// Check if this player has played enough games
+			return state.config.key_columns.includes(index);
+		});
+	},
+	activeCategoryName: (state, getters) => {
+		if (state.active_category == 'total') {
+			return 'Total score';
+		} else {
+			return state.columns[state.active_category];
+		}
 	}
 };
 

@@ -30,10 +30,18 @@
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players <icon v-if="$store.state.scores.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3}" @click="changeScreen(3)">Player Rankings</a>
+							<a class="nav-link" v-if="$store.state.scores.length > 0" href="#" v-bind:class="{active: $store.state.config.screen == 3 && $store.state.active_category == 'total'}" @click="changeScreen(3); changeCategory('total');">Player Rankings</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Configure </a>
+						</li>
+						<li class="nav-item" v-if="$store.state.scores.length > 0">
+							Scoring Categories:<br />
+							<ul class="nav nav-pills flex-column">
+								<li class="nav-item" v-for="(column, index) in $store.getters.keyColumns">
+									<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3 && $store.getters.activeCategoryName == column}" @click="changeScreen(3); changeCategoryByName(column);">{{column}}</a>
+								</li>
+							</ul>
 						</li>
 					</ul>
 				</nav>
@@ -77,6 +85,15 @@
         methods: {
         	changeScreen(newScreen) {
         	    this.$store.dispatch('changeScreen', newScreen);
+			},
+			changeCategoryByName(categoryName) {
+        	    let categoryIndex = this.$store.state.columns.findIndex(function(column, index) {
+					return column == categoryName;
+				});
+        	    this.changeCategory(categoryIndex);
+			},
+			changeCategory(category) {
+        	    this.$store.dispatch('changeActiveCategory', category);
 			}
 		},
         computed: {},
