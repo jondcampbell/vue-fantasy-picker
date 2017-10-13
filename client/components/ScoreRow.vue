@@ -9,15 +9,15 @@
         <td >
             {{ this.playerPosition }}
         </td>
-        <td v-for="(score_column, index) in score" v-bind:class="scoreClass(index)">{{ score[index] }}</td>
+        <td v-for="(score_column, index) in scoreData" v-bind:class="scoreClass(index)">{{ scoreData[index] }}</td>
     </tr>
 </template>
 
 <script>
     export default {
         props: [
-            'playerId',
-            'score'
+            'scoreData',
+            'playerId'
         ],
         methods: {
             scoreClass(column_index) {

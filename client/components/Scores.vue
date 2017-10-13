@@ -13,16 +13,18 @@
                                 <th>Position</th>
                                 <th v-for="(column, index) in keyColumns">{{column}}</th>
                                 <th>Average Score</th>
+                                <th>Above Average</th>
                             </tr>
                         </thead>
                         <tbody>
                             <score-row
                             class=""
-                            v-bind:key="score[0]"
                             ref="score_items"
-                            v-for="(score, index) in $store.state.scores"
-                            :score="score"
-                            :playerId="index"></score-row>
+                            v-for="(scoreItem, index) in $store.state.scores"
+                            v-bind:key="index"
+                            v-bind:scoreData="scoreItem.scoreData"
+                            v-bind:playerId="scoreItem.playerId"
+                            ></score-row>
                         </tbody>
                     </table>
                 </div>
@@ -47,7 +49,7 @@
                 });
             },
             totalScoredPlayers() {
-                return Object.keys(this.$store.state.scores).length;
+                return this.$store.state.scores.length;
             }
         },
         components: {

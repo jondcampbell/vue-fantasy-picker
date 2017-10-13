@@ -27,7 +27,7 @@
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 1}" @click="changeScreen(1)">Import <icon v-if="$store.state.players.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players <icon v-if="Object.keys($store.state.scores).length > 0" name="check"></icon></a>
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 2}" @click="changeScreen(2)">Players <icon v-if="$store.state.scores.length > 0" name="check"></icon></a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3}" @click="changeScreen(3)">Player Rankings</a>
@@ -48,7 +48,7 @@
 						<players></players>
 					</template>
 
-					<template v-if="$store.state.config.screen == 3 && Object.keys($store.state.scores).length > 0">
+					<template v-if="$store.state.config.screen == 3 && $store.state.scores.length > 0">
 						<scores></scores>
 					</template>
 

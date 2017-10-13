@@ -33,7 +33,7 @@ const state = {
 	players: [],
 	columns: [],
 	column_averages:{},
-	scores: {}
+	scores: []
 };
 
 const mutations = {
@@ -49,8 +49,20 @@ const mutations = {
 	CHANGE_SCREEN(state, screen) {
 		state.config.screen =  screen;
 	},
-	SET_RANKINGS(state, {playerId, rankings}) {
-		state.scores[playerId] = rankings;
+	SET_SCORE(state, {playerId, score}) {
+		// Find existing player index if it exists
+		let playerIndex =  state.scores.findIndex(function(player, index) {
+			return player[0] == playerId;
+		});
+
+		if (playerIndex >= 0) {
+			// Update the score for the player
+			state.scores[playerIndex] = score;
+		} else {
+			// Add a new score player
+			state.scores.push(score);
+		}
+
 	},
 	SET_COLUMN_AVERAGE(state, {column, average}) {
 		state.column_averages[column] = average;
@@ -98,10 +110,17 @@ const actions = {
 		const playerId = player[0];
 
 		// Calculate the players score for each key category to create rankings object
-		const rankings = store.getters.relativePlayerRanking(player);
+		const scoreData = store.getters.relativePlayerRanking(player);
 
-		// Store the rankings for the player
-		commit('SET_RANKINGS', {playerId: playerId, rankings: rankings});
+		let score = {};
+		score.playerId = playerId;
+		score.scoreData = scoreData;
+
+		const aboveAverage = store.getters.countAboveAverageRanks(scoreData);
+		score.scoreData.aboveAverage = aboveAverage;
+
+		// Store the score for the player
+		commit('SET_SCORE', {playerId: playerId, score: score});
 
 	},
 	topPlayers({ commit, state, dispatch }, category) {
@@ -140,6 +159,18 @@ const getters = {
 
 		rankings.total = roundFloat(rankingsAverage, 4);
 		return rankings;
+	},
+	countAboveAverageRanks: (state,getters) => (scores) => {
+		let aboveAverageCount = 0;
+
+		state.config.key_columns.forEach(function(keyColumn,index) {
+			let categoryAverage = state.column_averages[keyColumn];
+
+			if (scores[keyColumn] > categoryAverage) {
+				aboveAverageCount++;
+			}
+		});
+		return aboveAverageCount;
 	},
 	getPlayerGroupSize: (state) => {
 		let teams = state.config.teams_in_league;
