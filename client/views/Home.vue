@@ -107,7 +107,7 @@
 </script>
 <style lang="scss">
 .fantasy-picker-page{
-	button{
+	.btn.btn-primary, button{
 		cursor: pointer;
 	}
 }

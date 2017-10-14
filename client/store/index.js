@@ -13,7 +13,7 @@ const state = {
 		name_column:1, // Hardcoded for now
 		min_games_played: 10,
 		negative_columns: [
-			26
+			27
 		],
 		yearly_total_columns: [
 			11,
@@ -69,7 +69,6 @@ const mutations = {
 			});
 		});
 
-		// TODO: convert some stats to be divided by the games played
 		state.players = players;
 	},
 	CHANGE_SCREEN(state, screen) {
@@ -164,12 +163,15 @@ const actions = {
 
 const getters = {
 	relativePlayerRankingForCat: (state, getters) => (player, category) => {
-		// TODO: Make sure we are accounting for negative columns
 
 		let playerValue = player[category];
 
 		if (player[category] == '') {
 			playerValue = 0;
+		}
+
+		if (state.config.negative_columns.indexOf(category) >= 0) {
+			playerValue = -playerValue;
 		}
 		return roundFloat(parseFloat(playerValue) / parseFloat(state.column_averages[category]), 4);
 	},
@@ -188,8 +190,6 @@ const getters = {
 		let rankingsAverage = rankingsSum / state.config.key_columns.length;
 
 		// TODO: Somehow we need to tone down stats that are too far out of line for players very good at one thing
-
-		// TODO: Maybe record a count of how many categories were over the average
 
 		rankings.total = roundFloat(rankingsAverage, 4);
 		return rankings;

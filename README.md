@@ -2,13 +2,17 @@
 
 Started with [VuePack](https://github.com/egoist/vuepack).
 
-## Key Features
+## Key Features(some still in progress)
 - Import a file
 - Set important columns for the file
 - Set how many top players in each category to use to find the average
 - Change category average method(average, median, average of a median group?)
 - Calculate each players variance from category average
 - Highlight top players in each category and players who are in top X players in the most categories
+- Player searching
+- Mark your team 
+- Mark players unavailable
+- Players by position
 
 ## Phase 1
 - Geared towards nba head to head fantasy team that needs to win multiple categories each week
