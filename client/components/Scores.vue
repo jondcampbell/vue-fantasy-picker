@@ -4,6 +4,7 @@
             <div class="col-12">
                 <h3>Ranking players by {{ $store.getters.activeCategoryName }}</h3>
                 <strong>Scored players count {{ totalScoredPlayers }}</strong><br />
+                Showing: {{ position }}
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
                         <thead class="thead-inverse">
@@ -39,10 +40,17 @@
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
 
     export default {
-        methods: {},
+        methods: {
+            changePosition(position){
+        	    this.$store.dispatch('changeActivePosition', position);
+            }
+        },
         computed: {
             totalScoredPlayers() {
                 return this.$store.state.scores.length;
+            },
+            position() {
+                return this.$store.state.active_position;
             }
         },
         components: {

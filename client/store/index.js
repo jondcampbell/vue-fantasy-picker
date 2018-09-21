@@ -20,8 +20,8 @@ const state = {
 			23,
 			24,
 			25,
-			26,
-			27,
+			//26,
+			//27,
 			29
 		],
 		key_columns:[
@@ -31,8 +31,8 @@ const state = {
 			23,
 			24,
 			25,
-			26,
-			27,
+			//26,
+			//27,
 			29
 		], // Hardcoded for now
 		games_column: 5, // Hardcoded for now
@@ -42,7 +42,8 @@ const state = {
 	columns: [],
 	column_averages:{},
 	scores: [],
-	active_category: 'total'
+	active_category: 'total',
+	active_position: 'all'
 };
 
 const mutations = {
@@ -76,6 +77,9 @@ const mutations = {
 	},
 	CHANGE_ACTIVE_CATEGORY(state,category) {
 		state.active_category = category;
+	},
+	CHANGE_ACTIVE_POSITION(state,position) {
+		state.active_position = position;
 	},
 	SET_SCORE(state, {playerId, score}) {
 		// Find existing player index if it exists
@@ -115,6 +119,11 @@ const actions = {
 	changeActiveCategory({ commit, state }, category) {
 		if (state.active_category != category) {
 			commit('CHANGE_ACTIVE_CATEGORY', category);
+		}
+	},
+	changeActivePosition({ commit, state }, position) {
+		if (state.active_position != position) {
+			commit('CHANGE_ACTIVE_POSITION', position);
 		}
 	},
 	evaluatePlayers({ commit, state, dispatch }) {
