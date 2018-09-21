@@ -6,6 +6,6 @@
 
 <style>
 body {
-    padding-top: 120px;
+
 }
 </style>

@@ -4,6 +4,11 @@
         <section class="row ">
             <div class="col-12">
                 <strong>Player count {{ totalPlayers }}</strong><br />
+                Position:
+                <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
+                    <option value="all">All</option>
+                    <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
+                </select>
                 <div class="table-responsive">
                     <table class="table table-hover players-table">
                         <thead class="thead-inverse">
@@ -16,7 +21,7 @@
                             class=""
                             v-bind:key="player[0]"
                             ref="player_items"
-                            v-for="(player, index) in $store.state.players"
+                            v-for="(player, index) in filteredPlayers"
                             :player="player"
                             :index="index"></player-row>
                         </tbody>
@@ -37,9 +42,26 @@
             evaluatePlayers() {
                 this.$store.dispatch('evaluatePlayers');
                 sweetAlert("Woot!", "We evaluated your players", "success");
+            },
+            changePosition(event){
+                let position = event.target.value;
+        	    this.$store.dispatch('changeActivePosition', position);
             }
         },
         computed: {
+            filteredPlayers() {
+                let players = this.$store.state.players;
+                let active_position = this.$store.state.active_position;
+                let position_column = this.$store.state.config.pos_column;
+                
+                if(active_position !== 'all'){
+                    players =  players.filter(player => {
+                        return player[position_column] == active_position;
+                    });
+                }
+
+                return players;
+            },
             totalPlayers() {
                 return this.$store.state.players.length;
             }

@@ -9,8 +9,7 @@
                 Players per team: {{ $store.state.config.players_per_team }}<br />
                 Top Players: {{ $store.state.config.top_players }}<br />
                 Minimum Games Played: {{ $store.state.config.min_games_played }}<br />
-
-                <strong>Positions: </strong>
+                Positions: {{ positions }}
 
 
             </div>
@@ -31,7 +30,13 @@
 <script>
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     export default {
-        methods: {}
+        methods: {},
+        computed: {
+        positions: function () {
+            let positions = this.$store.state.config.positions;
+            return positions.join(',');
+        }
+      }
     }
 </script>
 

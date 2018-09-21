@@ -4,7 +4,11 @@
             <div class="col-12">
                 <h3>Ranking players by {{ $store.getters.activeCategoryName }}</h3>
                 <strong>Scored players count {{ totalScoredPlayers }}</strong><br />
-                Showing: {{ position }}
+                Position:
+                <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
+                    <option value="all">All</option>
+                    <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
+                </select>
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
                         <thead class="thead-inverse">
@@ -41,7 +45,8 @@
 
     export default {
         methods: {
-            changePosition(position){
+            changePosition(event){
+                let position = event.target.value;
         	    this.$store.dispatch('changeActivePosition', position);
             }
         },

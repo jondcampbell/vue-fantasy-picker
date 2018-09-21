@@ -2,6 +2,16 @@
 
 Started with [VuePack](https://github.com/egoist/vuepack).
 
+## TODO:
+- Simpler loading of files and evaulating so its smooth process and less tedious
+- Improve the performance of evaluating
+- Get it so we can filter by position
+- Get it so we can filter by name
+- Improve the storage of player data along with score for more efficient filtering
+- Mark your team as you build them with a list of current players and position(in sidebar?)
+- Mark players as taken as the draft happens
+- Make it so configuration page is actually editable
+
 ## Key Features(some still in progress)
 - Import a file
 - Set important columns for the file
@@ -9,6 +19,7 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 - Change category average method(average, median, average of a median group?)
 - Calculate each players variance from category average
 - Highlight top players in each category and players who are in top X players in the most categories
+- Working settings tools for modify configuration
 - Player searching
 - Mark your team 
 - Mark players unavailable

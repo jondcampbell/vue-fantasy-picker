@@ -15,6 +15,13 @@ const state = {
 		negative_columns: [
 			27
 		],
+		positions: [
+			'SG',
+			'PG',
+			'C',
+			'PF',
+			'SF'
+		],
 		yearly_total_columns: [
 			11,
 			23,
@@ -280,6 +287,7 @@ const getters = {
 	sortedPlayerScores: (state, getters) => (category) => {
 		// Make a copy of the array
 		let scores = state.scores.concat();
+
 		//Sort the players scores
 		let sortedPlayers = scores.sort(function(a, b) {
 			return b.scoreData[category] - a.scoreData[category];
