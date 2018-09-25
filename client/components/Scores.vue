@@ -9,6 +9,9 @@
                     <option value="all">All</option>
                     <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
                 </select>
+                &nbsp; &nbsp; &nbsp;
+                Player Name:
+                <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
                         <thead class="thead-inverse">
@@ -51,6 +54,10 @@
             changePosition(event){
                 let position = event.target.value;
         	    this.$store.dispatch('changeActivePosition', position);
+            },
+            changeSearchText(event){
+                let search_text = event.target.value;
+        	    this.$store.dispatch('changeSearchText', search_text);
             }
         },
         computed: {
@@ -62,25 +69,7 @@
             },
             filteredPlayers() {
                 // Make a copy of the array
-                let scores = this.$store.state.scores.concat();
-
-                let active_position = this.$store.state.active_position;
-                let position_column = this.$store.state.config.pos_column;
-                let active_category = this.$store.state.active_category;
-
-                if(active_position !== 'all'){
-                    scores =  scores.filter(player => {
-                        return player.playerPosition == active_position;
-                    });
-                }
-
-
-                //Sort the players scores
-                let sortedPlayers = scores.sort(function(a, b) {
-                    return b.scoreData[active_category] - a.scoreData[active_category];
-                });
-
-                return sortedPlayers;
+                return this.$store.getters.sortedFilteredPlayerScores;
 
             }
         },

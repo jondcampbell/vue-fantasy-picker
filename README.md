@@ -5,12 +5,10 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 ## TODO:
 - Simpler loading of files and evaulating so its smooth process and less tedious
 - Improve the performance of evaluating
-- Get it so we can filter by position
-- Get it so we can filter by name
-- Improve the storage of player data along with score for more efficient filtering
 - Mark your team as you build them with a list of current players and position(in sidebar?)
 - Mark players as taken as the draft happens
 - Make it so configuration page is actually editable
+- Make sure that all column references are dynamic from config
 
 ## Key Features(some still in progress)
 - Import a file
@@ -20,10 +18,10 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 - Calculate each players variance from category average
 - Highlight top players in each category and players who are in top X players in the most categories
 - Working settings tools for modify configuration
-- Player searching
+- Player filter by position
+- Player searching by partial name
 - Mark your team 
 - Mark players unavailable
-- Players by position
 
 ## Phase 1
 - Geared towards nba head to head fantasy team that needs to win multiple categories each week

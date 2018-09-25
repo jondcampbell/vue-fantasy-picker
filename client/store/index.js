@@ -50,7 +50,8 @@ const state = {
 	column_averages:{},
 	scores: [],
 	active_category: 'total',
-	active_position: 'all'
+	active_position: 'all',
+	search_text: ''
 };
 
 const mutations = {
@@ -87,6 +88,9 @@ const mutations = {
 	},
 	CHANGE_ACTIVE_POSITION(state,position) {
 		state.active_position = position;
+	},
+	CHANGE_SEARCH_TEXT(state,search_text) {
+		state.search_text = search_text;
 	},
 	SET_SCORE(state, {playerId, playerDetails}) {
 		// Find existing player index if it exists
@@ -131,6 +135,11 @@ const actions = {
 	changeActivePosition({ commit, state }, position) {
 		if (state.active_position != position) {
 			commit('CHANGE_ACTIVE_POSITION', position);
+		}
+	},
+	changeSearchText({ commit, state }, search_text) {
+		if (state.search_text != search_text) {
+			commit('CHANGE_SEARCH_TEXT', search_text);
 		}
 	},
 	evaluatePlayers({ commit, state, dispatch }) {
@@ -294,6 +303,59 @@ const getters = {
 		categoryAverage = roundFloat(categoryAverage, 4);
 
 		return categoryAverage;
+	},
+	sortedFilteredPlayerScores: (state, getters) => {
+		// Make a copy of the array
+		let scores = state.scores.concat();
+		let active_category = state.active_category;
+		let active_position = state.active_position;
+		let search_text = state.search_text;
+
+		if(active_position !== 'all'){
+			scores =  scores.filter(player => {
+				return player.playerPosition == active_position;
+			});
+		}
+
+		if(search_text !== ''){
+			scores =  scores.filter(player => {
+				if(player.playerName.toLowerCase().includes(search_text.toLowerCase())){
+					return true;
+				}
+				return false;
+			});
+		}
+
+		//Sort the players scores
+		let sortedPlayers = scores.sort(function(a, b) {
+			return b.scoreData[active_category] - a.scoreData[active_category];
+		});
+
+		return sortedPlayers;
+	},
+	filteredPlayers: (state, getters) => {
+		let players = state.players;
+		let active_position = state.active_position;
+		let position_column = state.config.pos_column;
+		let name_column = state.config.name_column
+		let search_text = state.search_text;
+
+		if(active_position !== 'all'){
+			players =  players.filter(player => {
+				return player[position_column] == active_position;
+			});
+		}
+
+		if(search_text !== ''){
+			players =  players.filter(player => {
+				if(player[name_column].toLowerCase().includes(search_text.toLowerCase())){
+					return true;
+				}
+				return false;
+			});
+		}
+
+		return players;
 	},
 	sortedPlayerScores: (state, getters) => (category) => {
 		// Make a copy of the array
