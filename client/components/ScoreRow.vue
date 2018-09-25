@@ -1,13 +1,13 @@
 <template>
     <tr class="score-row">
         <td >
-            {{ this.playerName }}
+            {{ playerName }}
         </td>
         <td >
-            {{ this.playerGames }}
+            {{ playerGames }}
         </td>
         <td >
-            {{ this.playerPosition }}
+            {{ playerPosition }}
         </td>
         <td v-for="(score_column, index) in scoreData" v-bind:class="scoreClass(index)">{{ scoreData[index] }}</td>
     </tr>
@@ -17,7 +17,10 @@
     export default {
         props: [
             'scoreData',
-            'playerId'
+            'playerId',
+            'playerName',
+            'playerPosition',
+            'playerGames'
         ],
         methods: {
             scoreClass(column_index) {
@@ -30,15 +33,6 @@
                 return this.$store.state.players.findIndex(function(player, index) {
                     return player[0] == playerId;
                 });
-            },
-            playerName() {
-                return this.$store.state.players[this.playerIndex][this.$store.state.config.name_column];
-            },
-            playerGames() {
-                return this.$store.state.players[this.playerIndex][this.$store.state.config.games_column];
-            },
-            playerPosition() {
-                return this.$store.state.players[this.playerIndex][this.$store.state.config.pos_column];
             }
         }
     }

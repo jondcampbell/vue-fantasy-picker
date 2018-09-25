@@ -32,11 +32,11 @@
     export default {
         methods: {},
         computed: {
-        positions: function () {
-            let positions = this.$store.state.config.positions;
-            return positions.join(',');
+            positions: function () {
+                let positions = this.$store.state.config.positions;
+                return positions.join(',');
+            }
         }
-      }
     }
 </script>
 

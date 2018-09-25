@@ -4,8 +4,12 @@
   </div>
 </template>
 
-<style>
+<style lang="scss">
 body {
-
+  padding-top: 120px;
+  nav.sidebar{
+    padding-top:15px;
+    min-height:300px;
+  }
 }
 </style>

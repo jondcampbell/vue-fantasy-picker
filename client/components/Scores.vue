@@ -25,10 +25,13 @@
                             <score-row
                             class=""
                             ref="score_items"
-                            v-for="(scoreItem, index) in $store.getters.sortedPlayerScores($store.state.active_category)"
+                            v-for="(scoreItem, index) in filteredPlayers"
                             v-bind:key="index"
                             v-bind:scoreData="scoreItem.scoreData"
                             v-bind:playerId="scoreItem.playerId"
+                            v-bind:playerName="scoreItem.playerName"
+                            v-bind:playerPosition="scoreItem.playerPosition"
+                            v-bind:playerGames="scoreItem.playerGames"
                             ></score-row>
                         </tbody>
                     </table>
@@ -56,6 +59,29 @@
             },
             position() {
                 return this.$store.state.active_position;
+            },
+            filteredPlayers() {
+                // Make a copy of the array
+                let scores = this.$store.state.scores.concat();
+
+                let active_position = this.$store.state.active_position;
+                let position_column = this.$store.state.config.pos_column;
+                let active_category = this.$store.state.active_category;
+
+                if(active_position !== 'all'){
+                    scores =  scores.filter(player => {
+                        return player.playerPosition == active_position;
+                    });
+                }
+
+
+                //Sort the players scores
+                let sortedPlayers = scores.sort(function(a, b) {
+                    return b.scoreData[active_category] - a.scoreData[active_category];
+                });
+
+                return sortedPlayers;
+
             }
         },
         components: {

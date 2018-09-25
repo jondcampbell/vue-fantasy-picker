@@ -53,7 +53,7 @@
                 let players = this.$store.state.players;
                 let active_position = this.$store.state.active_position;
                 let position_column = this.$store.state.config.pos_column;
-                
+
                 if(active_position !== 'all'){
                     players =  players.filter(player => {
                         return player[position_column] == active_position;

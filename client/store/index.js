@@ -88,7 +88,7 @@ const mutations = {
 	CHANGE_ACTIVE_POSITION(state,position) {
 		state.active_position = position;
 	},
-	SET_SCORE(state, {playerId, score}) {
+	SET_SCORE(state, {playerId, playerDetails}) {
 		// Find existing player index if it exists
 		let playerIndex =  state.scores.findIndex(function(player, index) {
 			return player[0] == playerId;
@@ -96,10 +96,10 @@ const mutations = {
 
 		if (playerIndex >= 0) {
 			// Update the score for the player
-			state.scores[playerIndex] = score;
+			state.scores[playerIndex] = playerDetails;
 		} else {
 			// Add a new score player
-			state.scores.push(score);
+			state.scores.push(playerDetails);
 		}
 
 	},
@@ -161,15 +161,26 @@ const actions = {
 		// Calculate the players score for each key category to create rankings object
 		const scoreData = store.getters.relativePlayerRanking(player);
 
-		let score = {};
-		score.playerId = playerId;
-		score.scoreData = scoreData;
 
-		const aboveAverage = store.getters.countAboveAverageRanks(scoreData);
-		score.scoreData.aboveAverage = aboveAverage;
+		let playerName = player[store.state.config.name_column];
+		let playerPosition = player[store.state.config.pos_column];
+		let playerGames = player[store.state.config.games_column];
+
+		let playerDetails = {
+			playerId : playerId,
+			scoreData : scoreData,
+			playerName: playerName,
+			playerPosition: playerPosition,
+			playerGames: playerGames
+		};
+
+		playerDetails.scoreData.aboveAverage = store.getters.countAboveAverageRanks(scoreData);
 
 		// Store the score for the player
-		commit('SET_SCORE', {playerId: playerId, score: score});
+		commit('SET_SCORE', {
+			playerId: playerId,
+			playerDetails: playerDetails,
+		});
 
 	},
 	topPlayers({ commit, state, dispatch }, category) {
