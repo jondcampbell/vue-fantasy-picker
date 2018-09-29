@@ -109,7 +109,10 @@ const mutations = {
 	},
 	SET_COLUMN_AVERAGE(state, {column, average}) {
 		state.column_averages[column] = average;
-	}
+	},
+	SET_CONFIG_OPTION(state, {config_key, config_value}) {
+		state.config[config_key] = config_value;
+	},
 };
 
 const actions = {
@@ -141,6 +144,12 @@ const actions = {
 		if (state.search_text != search_text) {
 			commit('CHANGE_SEARCH_TEXT', search_text);
 		}
+	},
+	changeConfigSetting({ commit, state }, { config_key, config_value }) {
+		commit('SET_CONFIG_OPTION', {
+			config_key: config_key,
+			config_value: config_value,
+		});
 	},
 	evaluatePlayers({ commit, state, dispatch }) {
 
@@ -380,7 +389,11 @@ const getters = {
 		} else {
 			return state.columns[state.active_category];
 		}
-	}
+	},
+	// TODO: Might not need this one
+	getConfigValue: (state, getters) => (config_key) => {
+		return state.config[config_key];
+    }
 };
 
 const store = new Vuex.Store({
