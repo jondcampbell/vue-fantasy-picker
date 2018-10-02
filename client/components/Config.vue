@@ -54,26 +54,19 @@
 
                     <div class="form-group">
                         Key Columns:
-                        <select class="form-control" id="key_columns" v-bind:value="key_columns"  v-on:change="changeKeyColumns" multiple>
-                            <option v-for="(column, index) in available_columns" v-bind:value="index">{{column}} (Column {{index}})</option>
-                        </select>
+                        <multiselect @input="changeKeyColumns" v-bind:value="key_columns" placeholder="Select Key Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
                     </div>
 
-                    Key Columns: {{ $store.state.config.key_columns }}<br />
                     <div class="form-group">
                         Negative Columns:
-                        <select class="form-control" v-bind:value="negative_columns"  v-on:change="changeNegativeColumns" multiple>
-                            <option v-for="(column, index) in available_columns" v-bind:value="index">{{column}} (Column {{index}})</option>
-                        </select>
+                        <multiselect @input="changeNegativeColumns" v-bind:value="negative_columns" placeholder="Select Negative Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
                     </div>
-                    Negative Columns: {{ $store.state.config.negative_columns }}<br />
+
                     <div class="form-group">
                         Yearly Total Columns:
-                        <select class="form-control" v-bind:value="yearly_total_columns"  v-on:change="changeYearlyTotalColumns" multiple>
-                            <option v-for="(column, index) in available_columns" v-bind:value="index">{{column}} (Column {{index}})</option>
-                        </select>
+                        <multiselect @input="changeYearlyTotalColumns" v-bind:value="yearly_total_columns" placeholder="Select Yearly Total Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
+
                     </div>
-                    Yearly Total Columns: {{ $store.state.config.yearly_total_columns }}<br />
                 </div>
             </section>
         </form>
@@ -111,21 +104,28 @@
             changeGamesColumn: function(e) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'games_column', config_value: parseInt(e.target.value) });
             },
-            changeKeyColumns: function(e) {
-                console.log(e.target);
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'key_columns', config_value: parseInt(e.target.value) });
+            changeNegativeColumns: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'negative_columns', config_value: value });
             },
-            changeNegativeColumns: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'negative_columns', config_value: parseInt(e.target.value) });
+            changeYearlyTotalColumns: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'yearly_total_columns', config_value: value });
             },
-            changeYearlyTotalColumns: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'yearly_total_columns', config_value: parseInt(e.target.value) });
+            changeKeyColumns: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'key_columns', config_value: value });
+            },
+            columnLabel: function(index) {
+                return `${this.$store.state.columns[index]} (Column ${index})`;
             }
         },
         computed: {
             positions: function () {
                 let positions = this.$store.state.config.positions;
                 return positions.join(',');
+            },
+            available_columns_simple: function () {
+                return this.$store.state.columns.map((column,index) => {
+                    return index;
+                });
             },
             ...mapState({
                 average_mode: state => state.config.average_mode,
@@ -143,10 +143,12 @@
 
                 available_columns: state => state.columns
             })
-        }
+        },components: {
+            Multiselect
+        },
     }
 </script>
-
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style lang="scss">
     .config-wrapper {
     }
