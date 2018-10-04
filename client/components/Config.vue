@@ -33,37 +33,31 @@
                     <h5>Columns</h5>
                     <div class="form-group">
                         Name Column:
-                        <select class="form-control" v-bind:value="name_column"  v-on:change="changeNameColumn">
-                            <option v-for="(column, index) in available_columns" v-bind:value="index">{{column}} (Column {{index}})</option>
-                        </select>
+                        <multiselect @input="changeNameColumn" v-bind:value="name_column" placeholder="Select Name Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
                     </div>
 
                     <div class="form-group">
                         Position Column:
-                        <select class="form-control" v-bind:value="pos_column"  v-on:change="changePosColumn">
-                            <option v-for="(column, index) in available_columns" v-bind:value="index">{{column}} (Column {{index}})</option>
-                        </select>
+                        <multiselect @input="changePosColumn" v-bind:value="pos_column" placeholder="Select Position Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
                     </div>
 
                     <div class="form-group">
-                        Games Column:
-                        <select class="form-control" v-bind:value="games_column"  v-on:change="changeGamesColumn">
-                            <option v-for="(column, index) in available_columns" v-bind:value="index">{{column}} (Column {{index}})</option>
-                        </select>
+                        Games Played Column:
+                        <multiselect @input="changeGamesColumn" v-bind:value="games_column" placeholder="Select Games Played Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
                     </div>
 
                     <div class="form-group">
-                        Key Columns:
+                        Key Positive Columns:
                         <multiselect @input="changeKeyColumns" v-bind:value="key_columns" placeholder="Select Key Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
                     </div>
 
                     <div class="form-group">
-                        Negative Columns:
+                        Key Negative Columns:
                         <multiselect @input="changeNegativeColumns" v-bind:value="negative_columns" placeholder="Select Negative Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
                     </div>
 
                     <div class="form-group">
-                        Yearly Total Columns:
+                        Yearly Total Based Columns:
                         <multiselect @input="changeYearlyTotalColumns" v-bind:value="yearly_total_columns" placeholder="Select Yearly Total Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
 
                     </div>
@@ -95,14 +89,14 @@
             changeMinGamesPlayed: function(e) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'min_games_played', config_value: parseInt(e.target.value) });
             },
-            changeNameColumn: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'name_column', config_value: parseInt(e.target.value) });
+            changeNameColumn: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'name_column', config_value: value });
             },
-            changePosColumn: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'pos_column', config_value: parseInt(e.target.value) });
+            changePosColumn: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'pos_column', config_value: value });
             },
-            changeGamesColumn: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'games_column', config_value: parseInt(e.target.value) });
+            changeGamesColumn: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'games_column', config_value: value });
             },
             changeNegativeColumns: function(value) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'negative_columns', config_value: value });
