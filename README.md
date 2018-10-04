@@ -1,14 +1,12 @@
 # vue-fantasy-picker
 
-Started with [VuePack](https://github.com/egoist/vuepack).
-
 ## TODO:
 - Simpler loading of files and evaulating so its smooth process and less tedious
 - Improve the performance of evaluating
 - Mark your team as you build them with a list of current players and position(in sidebar?)
-- Mark players as taken as the draft happens
-- Make it so configuration page is actually editable
-- Make sure that all column references are dynamic from config
+- Mark other teams players as taken as the draft happens
+- Create alternate ranking method that gives double weight to players with an above average shooting percentage so we can try that out
+- Better horizontal table scrolling?
 
 ## Key Features(some still in progress)
 - Import a file
@@ -17,7 +15,7 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 - Change category average method(average, median, average of a median group?)
 - Calculate each players variance from category average
 - Highlight top players in each category and players who are in top X players in the most categories
-- Working settings tools for modify configuration
+- Working settings tools to modify configuration
 - Player filter by position
 - Player searching by partial name
 - Mark your team 
@@ -34,6 +32,8 @@ Started with [VuePack](https://github.com/egoist/vuepack).
 - Team configuration of positions
 
 
+
+Started with [VuePack](https://github.com/egoist/vuepack).
 
 #### To start:
 

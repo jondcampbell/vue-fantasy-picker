@@ -22,7 +22,7 @@
                         <tbody>
                             <player-row
                             class=""
-                            v-bind:key="player[0]"
+                            v-bind:key="player[$store.state.config.id_column]"
                             ref="player_items"
                             v-for="(player, index) in filteredPlayers"
                             :player="player"

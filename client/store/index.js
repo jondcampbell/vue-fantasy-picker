@@ -10,6 +10,7 @@ const state = {
 		players_per_team:13,
 		average_mode: 1,
 		screen:1,
+		id_column:0,
 		name_column:1, // Hardcoded for now
 		min_games_played: 10,
 		negative_columns: [
@@ -95,7 +96,7 @@ const mutations = {
 	SET_SCORE(state, {playerId, playerDetails}) {
 		// Find existing player index if it exists
 		let playerIndex =  state.scores.findIndex(function(player, index) {
-			return player[0] == playerId;
+			return player[state.config.id_column] == playerId;
 		});
 
 		if (playerIndex >= 0) {
@@ -174,7 +175,7 @@ const actions = {
 	scorePlayer({ commit, state, dispatch }, player) {
 
 		// Create the player
-		const playerId = player[0];
+		const playerId = player[state.config.id_column];
 
 		// Calculate the players score for each key category to create rankings object
 		const scoreData = store.getters.relativePlayerRanking(player);

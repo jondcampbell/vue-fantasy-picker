@@ -31,7 +31,7 @@
             playerIndex(){
                 let playerId = this.playerId;
                 return this.$store.state.players.findIndex(function(player, index) {
-                    return player[0] == playerId;
+                    return player[this.$store.state.config.id_column] == playerId;
                 });
             }
         }
