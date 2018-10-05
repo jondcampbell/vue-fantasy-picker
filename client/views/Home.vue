@@ -1,27 +1,23 @@
 <template>
 	<div class="fantasy-picker-page">
-		<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+		<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
 
 			<a class="navbar-brand" href="#">Fantasy Stats Man</a>
-			<button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
 
-			<div class="collapse navbar-collapse" id="navbarsExampleDefault">
-				<ul class="navbar-nav mr-auto">
-					<li class="nav-item active">
-						<a class="nav-link" href="#"></a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#"></a>
+			<div class="collapse navbar-collapse text-light" v-if="$store.state.scores.length > 0">
+
+				<ul class="navbar-nav ml-auto nav-pills">
+					<li class="nav-item" v-for="(column, index) in $store.getters.keyColumns">
+						<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3 && $store.getters.activeCategoryName == column}" @click="changeScreen(3); changeCategoryByName(column);">{{column}}</a>
 					</li>
 				</ul>
+
 			</div>
 		</nav>
 
 		<div class="container-fluid">
 			<div class="row">
-				<nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
+				<nav class="col-sm-3 col-md-2 d-none d-sm-block sidebar">
 					<ul class="nav nav-pills flex-column">
 						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 1}" @click="changeScreen(1)">Import <icon v-if="$store.state.players.length > 0" name="check"></icon></a>
@@ -35,15 +31,27 @@
 						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Configure </a>
 						</li>
-						<li class="nav-item" v-if="$store.state.scores.length > 0">
-							Scoring Categories:<br />
-							<ul class="nav nav-pills flex-column">
-								<li class="nav-item" v-for="(column, index) in $store.getters.keyColumns">
-									<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 3 && $store.getters.activeCategoryName == column}" @click="changeScreen(3); changeCategoryByName(column);">{{column}}</a>
-								</li>
-							</ul>
-						</li>
 					</ul>
+
+					<div class="card text-white bg-success mb-3" style="max-width: 20rem;" v-if="myPlayers.length > 0">
+					  <div class="card-header">My Team</div>
+					  <div class="card-body">
+						<ul v-for="player in myPlayers" class="list-group text-dark">
+							<li class="list-group-item">{{ player[$store.state.config.name_column] }} <span class="badge badge-primary badge-pill">{{ player[$store.state.config.pos_column] }}</span></li>
+						</ul>
+					  </div>
+					</div>
+
+					<div class="card text-white bg-danger mb-3" style="max-width: 18rem;" v-if="takenPlayers.length > 0">
+					  <div class="card-header">Taken Players</div>
+					  <div class="card-body">
+						<ul v-for="player in takenPlayers" class="list-group text-dark">
+							<li class="list-group-item">{{ player[$store.state.config.name_column] }} <span class="badge badge-primary badge-pill">{{ player[$store.state.config.pos_column] }}</span></li>
+						</ul>
+					  </div>
+					</div>
+
+
 				</nav>
 
 				<main class="col-sm-9 ml-sm-auto col-md-10" role="main">
@@ -96,7 +104,17 @@
         	    this.$store.dispatch('changeActiveCategory', category);
 			}
 		},
-        computed: {},
+        computed: {
+            myPlayers() {
+                return this.$store.getters.myPlayers;
+            },
+			takenPlayers() {
+                return this.$store.getters.takenPlayers;
+            },
+			watchList() {
+                return this.$store.getters.watchList;
+            }
+		},
         components: {
             ImportData,
 			Config,

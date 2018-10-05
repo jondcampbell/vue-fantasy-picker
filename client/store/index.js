@@ -52,7 +52,10 @@ const state = {
 	scores: [],
 	active_category: 'total',
 	active_position: 'all',
-	search_text: ''
+	search_text: '',
+	my_team: [1,2,3],
+	taken_players: [4,5,6,7,8,11,51,61],
+	watch_list: [15,16,17]
 };
 
 const mutations = {
@@ -366,6 +369,54 @@ const getters = {
 		}
 
 		return players;
+	},
+	myPlayers: (state, getters) => {
+		let players = state.players;
+		let my_team = state.my_team;
+
+		let my_team_details = [];
+		if(state.scores.length > 0){
+			my_team.forEach(playerId => {
+				let playerIndex = state.players.findIndex(function(player, index) {
+					return player[state.config.id_column] == playerId;
+				});
+				my_team_details.push(players[playerIndex]);
+			});
+		}
+
+		return my_team_details;
+	},
+	takenPlayers: (state, getters) => {
+		let players = state.players;
+		let taken_players = state.taken_players;
+
+		let taken_players_details = [];
+		if(state.scores.length > 0) {
+            taken_players.forEach(playerId => {
+                let playerIndex = state.players.findIndex(function (player, index) {
+                    return player[state.config.id_column] == playerId;
+                });
+                if(playerIndex >= 0){
+                	taken_players_details.push(players[playerIndex]);
+				}
+            });
+        }
+
+		return taken_players_details;
+	},
+	watchList: (state, getters) => {
+		let players = state.players;
+		let watch_list = state.watch_list;
+
+		let watch_list_details = [];
+		watch_list.forEach(playerId => {
+			let playerIndex = state.players.findIndex(function(player, index) {
+				return player[state.config.id_column] == playerId;
+			});
+			watch_list_details.push(players[playerIndex]);
+		});
+
+		return watch_list_details;
 	},
 	sortedPlayerScores: (state, getters) => (category) => {
 		// Make a copy of the array

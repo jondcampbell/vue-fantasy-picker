@@ -3,15 +3,17 @@
         <section class="row ">
             <div class="col-12">
                 <h3>Ranking players by {{ $store.getters.activeCategoryName }}</h3>
-                <strong>Scored players count {{ totalScoredPlayers }}</strong><br />
-                Position:
-                <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
-                    <option value="all">All</option>
-                    <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
-                </select>
-                &nbsp; &nbsp; &nbsp;
-                Player Name:
-                <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
+                <div class="mb-3">
+                    <strong>Scored players count {{ totalScoredPlayers }}</strong><br />
+                    Position:
+                    <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
+                        <option value="all">All</option>
+                        <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
+                    </select>
+                    &nbsp; &nbsp; &nbsp;
+                    Player Name:
+                    <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
                         <thead class="thead-inverse">
