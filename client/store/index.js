@@ -117,6 +117,17 @@ const mutations = {
 	SET_CONFIG_OPTION(state, {config_key, config_value}) {
 		state.config[config_key] = config_value;
 	},
+	ADD_TO_LIST(state, {list, player_id}) {
+		if( ! findPlayerIndexInList( state[list], player_id ) ) {
+			state[list].push(player_id);
+		}
+	},
+	REMOVE_FROM_LIST(state, {list, player_id}) {
+
+		state[list] = state[list].filter(player => {
+			return player !== player_id;
+		});
+	},
 };
 
 const actions = {
@@ -148,6 +159,18 @@ const actions = {
 		if (state.search_text != search_text) {
 			commit('CHANGE_SEARCH_TEXT', search_text);
 		}
+	},
+	addToList({ commit, state }, { list, player_id }) {
+		commit('ADD_TO_LIST', {
+			list: list,
+			player_id: parseInt(player_id),
+		});
+	},
+	removeFromList({ commit, state }, { list, player_id }) {
+		commit('REMOVE_FROM_LIST', {
+			list: list,
+			player_id: parseInt(player_id),
+		});
 	},
 	changeConfigSetting({ commit, state }, { config_key, config_value }) {
 		commit('SET_CONFIG_OPTION', {
@@ -457,6 +480,15 @@ const store = new Vuex.Store({
 
 const roundFloat = function(value, decimals) {
 	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+};
+
+const findPlayerIndexInList = function(list,player_id){
+	const playerIndex = list.indexOf(player_id);
+	if(playerIndex >= 0){
+		return playerIndex
+	} else {
+		return false;
+	}
 };
 
 export default store;

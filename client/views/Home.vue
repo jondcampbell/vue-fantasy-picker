@@ -29,6 +29,9 @@
 							<a class="nav-link" v-if="$store.state.scores.length > 0" href="#" v-bind:class="{active: $store.state.config.screen == 3 && $store.state.active_category == 'total'}" @click="changeScreen(3); changeCategory('total');">Player Rankings</a>
 						</li>
 						<li class="nav-item">
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 5}" @click="changeScreen(5)">Watch List </a>
+						</li>
+						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Configure </a>
 						</li>
 					</ul>
@@ -68,6 +71,10 @@
 						<scores></scores>
 					</template>
 
+					<template v-if="$store.state.config.screen == 5">
+						<watch-list></watch-list>
+					</template>
+
 					<template v-if="$store.state.config.screen == 4">
 						<config></config>
 					</template>
@@ -88,6 +95,7 @@
     import Config from 'components/Config';
     import Players from 'components/Players';
     import Scores from 'components/Scores';
+    import WatchList from 'components/WatchList';
 
     export default {
         methods: {
@@ -119,7 +127,8 @@
             ImportData,
 			Config,
 			Players,
-			Scores
+			Scores,
+			WatchList
         }
     }
 </script>

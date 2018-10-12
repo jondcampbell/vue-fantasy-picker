@@ -1,17 +1,10 @@
 <template>
-    <div class="players-wrapper">
-        <h2>Players <button @click="evaluatePlayers()" class="btn btn-primary float-right">Evaluate Players</button></h2>
+    <div class="watch-list-wrapper">
+        <h2>Watch List</h2>
         <section class="row ">
             <div class="col-12">
                 <div class="mb-3">
-                    <strong>Player count {{ totalPlayers }}</strong><br />
-                    Position:
-                    <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
-                        <option value="all">All</option>
-                        <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
-                    </select>
-                    Player Name:
-                    <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
+                    <strong>Player count {{ totalWatchListPlayers }}</strong><br />
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover players-table">
@@ -45,26 +38,13 @@
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
 
     export default {
-        methods: {
-            evaluatePlayers() {
-                this.$store.dispatch('evaluatePlayers');
-                sweetAlert("Woot!", "We evaluated your players", "success");
-            },
-            changePosition(event){
-                let position = event.target.value;
-        	    this.$store.dispatch('changeActivePosition', position);
-            },
-            changeSearchText(event){
-                let search_text = event.target.value;
-        	    this.$store.dispatch('changeSearchText', search_text);
-            }
-        },
+        methods: {},
         computed: {
             filteredPlayers() {
-                return this.$store.getters.filteredPlayers;
+                return this.$store.getters.watchList;
             },
-            totalPlayers() {
-                return this.$store.state.players.length;
+            totalWatchListPlayers() {
+                return this.$store.getters.watchList.length;
             }
         },
         components: {
@@ -74,7 +54,7 @@
 </script>
 
 <style lang="scss">
-    .players-wrapper {
+    .watch-list-wrapper {
         .players-table{
             th{
                 &.name{

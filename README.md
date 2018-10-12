@@ -15,10 +15,10 @@
 - Mark players unavailable
 
 ## TODO:
-- Simpler loading of files and evaulating so its smooth process and less tedious
-- Improve the performance of evaluating
 - Mark your team as you build them with a list of current players and position(in sidebar?)
 - Mark other teams players as taken as the draft happens
+- Simpler loading of files and evaulating so its smooth process and less tedious
+- Improve the performance of evaluating
 - Create alternate ranking method that gives double weight to players with an above average shooting percentage so we can try that out
 - Better horizontal table scrolling?
 - Maybe add vue-router for better url stuff
