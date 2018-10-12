@@ -48,7 +48,7 @@
 </template>
 
 <script>
-    import ScoreRow from 'components/ScoreRow';
+    import ScoreRow from 'components/partials/ScoreRow';
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     import PlayerSummary from 'components/partials/PlayerSummary';
 

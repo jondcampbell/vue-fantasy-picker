@@ -98,12 +98,12 @@
 </template>
 
 <script>
-    import ImportData from 'components/ImportData';
-    import Config from 'components/Config';
-    import Players from 'components/Players';
-    import Scores from 'components/Scores';
-    import WatchList from 'components/WatchList';
-    import MyTeam from 'components/MyTeam';
+    import ImportData from 'components/pages/ImportData';
+    import Config from 'components/pages/Config';
+    import Players from 'components/pages/Players';
+    import Scores from 'components/pages/Scores';
+    import WatchList from 'components/pages/WatchList';
+    import MyTeam from 'components/pages/MyTeam';
 
     export default {
         methods: {
