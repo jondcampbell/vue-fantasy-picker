@@ -4,7 +4,7 @@
             <div class="col-12">
                 <h3>Ranking players by {{ $store.getters.activeCategoryName }}</h3>
                 <div class="mb-3">
-                    <strong>Scored players count {{ totalScoredPlayers }}</strong><br />
+                    <player-summary :players="filteredPlayers" type="score"></player-summary>
                     Position:
                     <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
                         <option value="all">All</option>
@@ -50,6 +50,8 @@
 <script>
     import ScoreRow from 'components/ScoreRow';
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
+    import PlayerSummary from 'components/partials/PlayerSummary';
+
 
     export default {
         methods: {
@@ -63,9 +65,6 @@
             }
         },
         computed: {
-            totalScoredPlayers() {
-                return this.$store.state.scores.length;
-            },
             position() {
                 return this.$store.state.active_position;
             },
@@ -77,6 +76,7 @@
         },
         components: {
             ScoreRow,
+            PlayerSummary
         }
     }
 </script>

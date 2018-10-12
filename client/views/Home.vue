@@ -32,6 +32,9 @@
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 5}" @click="changeScreen(5)">Watch List </a>
 						</li>
 						<li class="nav-item">
+							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 6}" @click="changeScreen(6)">My Team </a>
+						</li>
+						<li class="nav-item">
 							<a class="nav-link" href="#" v-bind:class="{active: $store.state.config.screen == 4}" @click="changeScreen(4)">Configure </a>
 						</li>
 					</ul>
@@ -75,6 +78,10 @@
 						<watch-list></watch-list>
 					</template>
 
+					<template v-if="$store.state.config.screen == 6">
+						<my-team></my-team>
+					</template>
+
 					<template v-if="$store.state.config.screen == 4">
 						<config></config>
 					</template>
@@ -96,6 +103,7 @@
     import Players from 'components/Players';
     import Scores from 'components/Scores';
     import WatchList from 'components/WatchList';
+    import MyTeam from 'components/MyTeam';
 
     export default {
         methods: {
@@ -128,7 +136,8 @@
 			Config,
 			Players,
 			Scores,
-			WatchList
+			WatchList,
+			MyTeam
         }
     }
 </script>

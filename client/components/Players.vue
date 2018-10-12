@@ -4,7 +4,7 @@
         <section class="row ">
             <div class="col-12">
                 <div class="mb-3">
-                    <strong>Player count {{ totalPlayers }}</strong><br />
+                    <player-summary :players="filteredPlayers" ></player-summary>
                     Position:
                     <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
                         <option value="all">All</option>
@@ -43,6 +43,7 @@
 <script>
     import PlayerRow from 'components/PlayerRow';
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
+    import PlayerSummary from 'components/partials/PlayerSummary';
 
     export default {
         methods: {
@@ -62,13 +63,11 @@
         computed: {
             filteredPlayers() {
                 return this.$store.getters.filteredPlayers;
-            },
-            totalPlayers() {
-                return this.$store.state.players.length;
             }
         },
         components: {
-            PlayerRow
+            PlayerRow,
+            PlayerSummary
         }
     }
 </script>

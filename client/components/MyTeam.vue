@@ -1,6 +1,6 @@
 <template>
-    <div class="watch-list-wrapper">
-        <h2>Watch List</h2>
+    <div class="my-team-wrapper">
+        <h2>My Team</h2>
         <section class="row ">
             <div class="col-12">
                 <div class="mb-3">
@@ -42,7 +42,7 @@
         methods: {},
         computed: {
             filteredPlayers() {
-                return this.$store.getters.watchList;
+                return this.$store.getters.myPlayers;
             }
         },
         components: {
@@ -53,7 +53,7 @@
 </script>
 
 <style lang="scss">
-    .watch-list-wrapper {
+    .my-team-wrapper {
         .players-table{
             th{
                 &.name{
