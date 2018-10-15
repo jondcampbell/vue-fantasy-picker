@@ -15,6 +15,15 @@
 - Mark players unavailable
 
 ## TODO:
+- Algorithm takes into account minimum games and minimum minutes settings
+- Flag players on the player rankings list
+- Allow sorting of rankings lists to show all players or only available players
+- Strength of team scoring
+- Team config setup(for available slots)
+- Change my positions count code to not be hardcoded to baseketball
+- Import list of taken players(name match)
+
+- Local Datebase storage of state 
 - Simpler loading of files and evaulating so its smooth process and less tedious
 - Improve the performance of evaluating
 - Create alternate ranking method that gives double weight to players with an above average shooting percentage so we can try that out

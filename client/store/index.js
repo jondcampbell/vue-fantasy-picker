@@ -53,9 +53,9 @@ const state = {
 	active_category: 'total',
 	active_position: 'all',
 	search_text: '',
-	my_team: [1,2,3],
-	taken_players: [4,5,6,7,8,11,51,61],
-	watch_list: [15,16,17]
+	my_team: [],
+	taken_players: [],
+	watch_list: []
 };
 
 const mutations = {
