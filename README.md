@@ -15,12 +15,11 @@
 - Mark players unavailable
 
 ## TODO:
-- Algorithm takes into account minimum games and minimum minutes settings
 - Flag players on the player rankings list
 - Allow sorting of rankings lists to show all players or only available players
 - Strength of team scoring
 - Team config setup(for available slots)
-- Change my positions count code to not be hardcoded to baseketball
+- Change my positions count code to not be hardcoded to basketball
 - Import list of taken players(name match)
 
 - Local Datebase storage of state 

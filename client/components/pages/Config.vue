@@ -24,6 +24,9 @@
                         Minimum Games Played: <input class="form-control" type="number" v-bind:value="min_games_played" v-on:input="changeMinGamesPlayed"/>
                     </div>
                     <div class="form-group">
+                        Minimum Minutes Played per Game: <input class="form-control" type="number" v-bind:value="min_minutes_played" v-on:input="changeMinMinutesPlayed"/>
+                    </div>
+                    <div class="form-group">
                         Positions: {{ positions }}
                     </div>
 
@@ -44,6 +47,11 @@
                     <div class="form-group">
                         Games Played Column:
                         <multiselect @input="changeGamesColumn" v-bind:value="games_column" placeholder="Select Games Played Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
+                    </div>
+
+                    <div class="form-group">
+                        Minutes Played Column:
+                        <multiselect @input="changeMinutesColumn" v-bind:value="minutes_column" placeholder="Select Minutes Played Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
                     </div>
 
                     <div class="form-group">
@@ -89,6 +97,9 @@
             changeMinGamesPlayed: function(e) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'min_games_played', config_value: parseInt(e.target.value) });
             },
+            changeMinMinutesPlayed: function(e) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'min_minutes_played', config_value: parseInt(e.target.value) });
+            },
             changeNameColumn: function(value) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'name_column', config_value: value });
             },
@@ -97,6 +108,9 @@
             },
             changeGamesColumn: function(value) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'games_column', config_value: value });
+            },
+            changeMinutesColumn: function(value) {
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'minutes_column', config_value: value });
             },
             changeNegativeColumns: function(value) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'negative_columns', config_value: value });
@@ -127,10 +141,12 @@
                 players_per_team: state => state.config.players_per_team,
                 top_players: state => state.config.top_players,
                 min_games_played: state => state.config.min_games_played,
+                min_minutes_played: state => state.config.min_minutes_played,
 
                 name_column: state => state.config.name_column,
                 pos_column: state => state.config.pos_column,
                 games_column: state => state.config.games_column,
+                minutes_column: state => state.config.minutes_column,
                 key_columns: state => state.config.key_columns,
                 negative_columns: state => state.config.negative_columns,
                 yearly_total_columns: state => state.config.yearly_total_columns,

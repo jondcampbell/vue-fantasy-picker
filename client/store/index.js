@@ -11,8 +11,9 @@ const state = {
 		average_mode: 1,
 		screen:1,
 		id_column:0,
-		name_column:1, // Hardcoded for now
+		name_column:1,
 		min_games_played: 10,
+		min_minutes_played: 8,
 		negative_columns: [
 			27
 		],
@@ -42,9 +43,10 @@ const state = {
 			//26,
 			//27,
 			29
-		], // Hardcoded for now
-		games_column: 5, // Hardcoded for now
-		pos_column: 2 // Hardcoded for now
+		],
+		games_column: 5,
+		minutes_column: 7,
+		pos_column: 2
 	},
 	players: [],
 	columns: [],
@@ -95,6 +97,9 @@ const mutations = {
 	},
 	CHANGE_SEARCH_TEXT(state,search_text) {
 		state.search_text = search_text;
+	},
+	RESET_SCORES(state){
+		state.scores = [];
 	},
 	SET_SCORE(state, {playerId, playerDetails}) {
 		// Find existing player index if it exists
@@ -180,6 +185,8 @@ const actions = {
 	},
 	evaluatePlayers({ commit, state, dispatch }) {
 
+		commit('RESET_SCORES');
+
 		// Loop our key columns
 		state.config.key_columns.forEach(function(column,index) {
 			// Calculate the baseline average for each category and store it
@@ -192,7 +199,9 @@ const actions = {
 		// Loop through each player
 		state.players.forEach(function(player,index) {
 			// If the player has played at least the minimum games number
-			if (player[state.config.games_column] >= state.config.min_games_played) {
+			const meets_min_games = player[state.config.games_column] >= state.config.min_games_played;
+			const meets_min_minutes = (player[state.config.minutes_column] / player[state.config.games_column]) >= state.config.min_minutes_played;
+			if (meets_min_games && meets_min_minutes) {
 				dispatch('scorePlayer', player);
 			}
 		})
@@ -302,8 +311,10 @@ const getters = {
 		}
 
 		let validPlayers = state.players.filter(function(player) {
-			// Check if this player has played enough games
-			return player[state.config.games_column] >= state.config.min_games_played;
+			// Check if this player has played enough games and minutes
+			const meets_min_games = player[state.config.games_column] >= state.config.min_games_played;
+			const meets_min_minutes = (player[state.config.minutes_column] / player[state.config.games_column]) >= state.config.min_minutes_played;
+			return meets_min_games && meets_min_minutes;
 		});
 
 		sortedPlayers = validPlayers.sort(function(a, b) {
