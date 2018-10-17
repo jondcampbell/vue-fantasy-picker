@@ -18,6 +18,9 @@
                     <table class="table table-hover scores-table">
                         <thead class="thead-inverse">
                             <tr>
+                                <th>Watch</th>
+                                <th>Mine</th>
+                                <th>Taken</th>
                                 <th>Name</th>
                                 <th>Games Played</th>
                                 <th>Position</th>

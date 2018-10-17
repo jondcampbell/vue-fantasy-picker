@@ -15,8 +15,7 @@
 - Mark players unavailable
 
 ## TODO:
-- Flag players on the player rankings list
-- Allow sorting of rankings lists to show all players or only available players
+- Allow filteringg of rankings lists to show all players or only available players
 - Strength of team scoring
 - Team config setup(for available slots)
 - Change my positions count code to not be hardcoded to basketball
