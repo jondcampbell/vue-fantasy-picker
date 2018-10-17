@@ -67,24 +67,38 @@ const mutations = {
 	SET_PLAYERS(state, players) {
 
 		let nameColumn = state.config.name_column;
+		let idColumn = state.config.id_column;
+		let cleanPlayers = [];
 		players.forEach(function(player,playerIndex) {
-			// Fix player names
-			let name = player[nameColumn];
-			let junk = name.indexOf('\\');
-			let cleanName = name.substring(0, junk);
 
-			// Set the new name
-			players[playerIndex][nameColumn] = cleanName;
+			let playerId = player[idColumn];
 
-			let gamesPlayed = player[state.config.games_column];
-
-			// Adjust the yearly totals to be based on games played
-			state.config.yearly_total_columns.forEach(function(column, columnIndex) {
-				players[playerIndex][column] = roundFloat(player[column] / gamesPlayed, 4);
+			let cleanPlayerIndex = cleanPlayers.findIndex(function(cleanPlayer, index) {
+				return cleanPlayer[state.config.id_column] == playerId;
 			});
+
+			if(cleanPlayerIndex < 0){
+				// Fix player names
+				let name = player[nameColumn];
+				let junk = name.indexOf('\\');
+				let cleanName = name.substring(0, junk);
+
+				// Set the new name
+				player[nameColumn] = cleanName;
+
+				let gamesPlayed = player[state.config.games_column];
+
+				// Adjust the yearly totals to be based on games played
+				state.config.yearly_total_columns.forEach(function(column, columnIndex) {
+					player[column] = roundFloat(player[column] / gamesPlayed, 4);
+				});
+				cleanPlayers.push(player);
+			}
+
+
 		});
 
-		state.players = players;
+		state.players = cleanPlayers;
 	},
 	CHANGE_SCREEN(state, screen) {
 		state.config.screen =  screen;
@@ -496,7 +510,7 @@ const roundFloat = function(value, decimals) {
 const findPlayerIndexInList = function(list,player_id){
 	const playerIndex = list.indexOf(player_id);
 	if(playerIndex >= 0){
-		return playerIndex
+		return playerIndex;
 	} else {
 		return false;
 	}

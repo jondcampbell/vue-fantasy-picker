@@ -16,6 +16,7 @@
 
 ## TODO:
 - Allow filteringg of rankings lists to show all players or only available players
+- Compare players head to head and show who is the best across the categories
 - Strength of team scoring
 - Team config setup(for available slots)
 - Change my positions count code to not be hardcoded to basketball
