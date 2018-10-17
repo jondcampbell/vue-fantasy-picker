@@ -9,21 +9,17 @@ const state = {
 		teams_in_league:12,
 		players_per_team:13,
 		average_mode: 1,
+		min_games_played: 10,
+		min_minutes_played: 8,
 		screen:1,
 		id_column:0,
 		name_column:1,
-		min_games_played: 10,
-		min_minutes_played: 8,
 		negative_columns: [
 			27
 		],
-		positions: [
-			'SG',
-			'PG',
-			'C',
-			'PF',
-			'SF'
-		],
+		games_column: 5,
+		minutes_column: 7,
+		pos_column: 2,
 		yearly_total_columns: [
 			11,
 			23,
@@ -44,9 +40,13 @@ const state = {
 			//27,
 			29
 		],
-		games_column: 5,
-		minutes_column: 7,
-		pos_column: 2
+		positions: [
+			'SG',
+			'PG',
+			'C',
+			'PF',
+			'SF'
+		],
 	},
 	players: [],
 	columns: [],
@@ -54,6 +54,7 @@ const state = {
 	scores: [],
 	active_category: 'total',
 	active_position: 'all',
+	active_filter: false,
 	search_text: '',
 	my_team: [],
 	taken_players: [],
@@ -108,6 +109,9 @@ const mutations = {
 	},
 	CHANGE_ACTIVE_POSITION(state,position) {
 		state.active_position = position;
+	},
+	CHANGE_ACTIVE_FILTER(state,filter) {
+		state.active_filter = filter;
 	},
 	CHANGE_SEARCH_TEXT(state,search_text) {
 		state.search_text = search_text;
@@ -172,6 +176,11 @@ const actions = {
 	changeActivePosition({ commit, state }, position) {
 		if (state.active_position != position) {
 			commit('CHANGE_ACTIVE_POSITION', position);
+		}
+	},
+	changeActiveFilter({ commit, state }, filter) {
+		if (state.active_filter != filter) {
+			commit('CHANGE_ACTIVE_FILTER', filter);
 		}
 	},
 	changeSearchText({ commit, state }, search_text) {

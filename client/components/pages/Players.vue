@@ -5,13 +5,7 @@
             <div class="col-12">
                 <div class="mb-3">
                     <player-summary :players="filteredPlayers" ></player-summary>
-                    Position:
-                    <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
-                        <option value="all">All</option>
-                        <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
-                    </select>
-                    Player Name:
-                    <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
+                    <player-filtering ></player-filtering>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover players-table">
@@ -44,20 +38,13 @@
     import PlayerRow from 'components/partials/PlayerRow';
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     import PlayerSummary from 'components/partials/PlayerSummary';
+    import PlayerFiltering from 'components/partials/PlayerFiltering';
 
     export default {
         methods: {
             evaluatePlayers() {
                 this.$store.dispatch('evaluatePlayers');
                 sweetAlert("Woot!", "We evaluated your players", "success");
-            },
-            changePosition(event){
-                let position = event.target.value;
-        	    this.$store.dispatch('changeActivePosition', position);
-            },
-            changeSearchText(event){
-                let search_text = event.target.value;
-        	    this.$store.dispatch('changeSearchText', search_text);
             }
         },
         computed: {
@@ -67,7 +54,8 @@
         },
         components: {
             PlayerRow,
-            PlayerSummary
+            PlayerSummary,
+            PlayerFiltering
         }
     }
 </script>

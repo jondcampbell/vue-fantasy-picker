@@ -5,14 +5,7 @@
                 <h3>Ranking players by {{ $store.getters.activeCategoryName }}</h3>
                 <div class="mb-3">
                     <player-summary :players="filteredPlayers" type="score"></player-summary>
-                    Position:
-                    <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
-                        <option value="all">All</option>
-                        <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
-                    </select>
-                    &nbsp; &nbsp; &nbsp;
-                    Player Name:
-                    <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
+                    <player-filtering ></player-filtering>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
@@ -54,19 +47,11 @@
     import ScoreRow from 'components/partials/ScoreRow';
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     import PlayerSummary from 'components/partials/PlayerSummary';
+    import PlayerFiltering from 'components/partials/PlayerFiltering';
 
 
     export default {
-        methods: {
-            changePosition(event){
-                let position = event.target.value;
-        	    this.$store.dispatch('changeActivePosition', position);
-            },
-            changeSearchText(event){
-                let search_text = event.target.value;
-        	    this.$store.dispatch('changeSearchText', search_text);
-            }
-        },
+        methods: {},
         computed: {
             position() {
                 return this.$store.state.active_position;
@@ -79,7 +64,8 @@
         },
         components: {
             ScoreRow,
-            PlayerSummary
+            PlayerSummary,
+            PlayerFiltering
         }
     }
 </script>
