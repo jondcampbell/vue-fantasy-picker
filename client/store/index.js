@@ -54,7 +54,7 @@ const state = {
 	scores: [],
 	active_category: 'total',
 	active_position: 'all',
-	active_filter: false,
+	active_filter: 'none',
 	search_text: '',
 	my_team: [],
 	taken_players: [],
@@ -378,6 +378,7 @@ const getters = {
 		// Make a copy of the array
 		let scores = state.scores.concat();
 		let active_category = state.active_category;
+		let active_filter = state.active_filter;
 		let active_position = state.active_position;
 		let search_text = state.search_text;
 
@@ -396,6 +397,31 @@ const getters = {
 			});
 		}
 
+		const unavailable_players = [...state.taken_players,...state.my_team];
+		if(active_filter == 'untaken'){
+			scores =  scores.filter(player => {
+
+				if(findPlayerIndexInList(unavailable_players, player.playerId) !== false){
+					return false;
+				} else {
+					return true;
+				}
+
+			});
+		}
+
+		if(active_filter == 'taken'){
+			scores =  scores.filter(player => {
+
+				if(findPlayerIndexInList(state.taken_players, player.playerId) !== false){
+					return true;
+				} else {
+					return false;
+				}
+
+			});
+		}
+
 		//Sort the players scores
 		let sortedPlayers = scores.sort(function(a, b) {
 			return b.scoreData[active_category] - a.scoreData[active_category];
@@ -406,13 +432,40 @@ const getters = {
 	filteredPlayers: (state, getters) => {
 		let players = state.players;
 		let active_position = state.active_position;
+		let active_filter = state.active_filter;
 		let position_column = state.config.pos_column;
-		let name_column = state.config.name_column
+		let name_column = state.config.name_column;
+		let id_column = state.config.id_column;
 		let search_text = state.search_text;
 
 		if(active_position !== 'all'){
 			players =  players.filter(player => {
 				return player[position_column] == active_position;
+			});
+		}
+		const unavailable_players = [...state.taken_players,...state.my_team];
+
+		if(active_filter == 'untaken'){
+			players =  players.filter(player => {
+
+				if(findPlayerIndexInList(unavailable_players, player[id_column]) !== false){
+					return false;
+				} else {
+					return true;
+				}
+
+			});
+		}
+
+		if(active_filter == 'taken'){
+			players =  players.filter(player => {
+
+				if(findPlayerIndexInList(state.taken_players, player[id_column]) !== false){
+					return true;
+				} else {
+					return false;
+				}
+
 			});
 		}
 
@@ -517,7 +570,7 @@ const roundFloat = function(value, decimals) {
 };
 
 const findPlayerIndexInList = function(list,player_id){
-	const playerIndex = list.indexOf(player_id);
+	const playerIndex = list.indexOf(parseInt(player_id));
 	if(playerIndex >= 0){
 		return playerIndex;
 	} else {
