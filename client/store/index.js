@@ -410,7 +410,17 @@ const getters = {
 
 			});
 		}
+		if(active_filter == 'mine'){
+			scores =  scores.filter(player => {
 
+				if(findPlayerIndexInList(state.my_team, player.playerId) !== false){
+					return true;
+				} else {
+					return false;
+				}
+
+			});
+		}
 		if(active_filter == 'taken'){
 			scores =  scores.filter(player => {
 
@@ -457,7 +467,17 @@ const getters = {
 
 			});
 		}
+		if(active_filter == 'mine'){
+			players =  players.filter(player => {
 
+				if(findPlayerIndexInList(state.my_team, player[id_column]) !== false){
+					return true;
+				} else {
+					return false;
+				}
+
+			});
+		}
 		if(active_filter == 'taken'){
 			players =  players.filter(player => {
 

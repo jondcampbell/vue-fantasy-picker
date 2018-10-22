@@ -13,6 +13,7 @@
         <select v-bind:value="$store.state.active_filter" v-on:change="changeFilter">
             <option value="none">Show All</option>
             <option value="untaken">Available</option>
+            <option value="mine">Mine</option>
             <option value="taken">Other Teams</option>
         </select>
     </div>
