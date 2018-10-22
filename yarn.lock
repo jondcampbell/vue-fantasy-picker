@@ -1564,6 +1564,10 @@ circular-json@^0.3.1:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/circular-json/-/circular-json-0.3.3.tgz#815c99ea84f6809529d2f45791bdf82711352d66"
 
+circular-json@^0.5.5:
+  version "0.5.8"
+  resolved "https://registry.yarnpkg.com/circular-json/-/circular-json-0.5.8.tgz#40d2ff3aadee99871ebd19b41af3c9f113490003"
+
 clap@^1.0.9:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/clap/-/clap-1.2.3.tgz#4f36745b32008492557f46412d66d50cb99bce51"
@@ -4509,6 +4513,10 @@ lodash.keys@^3.0.0:
 lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
+
+lodash.merge@^4.6.1:
+  version "4.6.1"
+  resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.1.tgz#adc25d9cb99b9391c59624f379fbba60d7111d54"
 
 lodash.mergewith@^4.6.0:
   version "4.6.0"
@@ -7658,6 +7666,13 @@ vue-template-es2015-compiler@^1.2.2:
 vue@^2.5.17:
   version "2.5.17"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.5.17.tgz#0f8789ad718be68ca1872629832ed533589c6ada"
+
+vuex-persist@^1.7.2:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/vuex-persist/-/vuex-persist-1.7.2.tgz#11426036e7886b5ad79ecc565130ee599bdefb5d"
+  dependencies:
+    circular-json "^0.5.5"
+    lodash.merge "^4.6.1"
 
 vuex-router-sync@^4.0.0:
   version "4.3.2"

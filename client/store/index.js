@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import VuexPersistence from 'vuex-persist'
 
 Vue.use(Vuex);
 
@@ -562,7 +563,8 @@ const store = new Vuex.Store({
 	state,
 	mutations,
 	actions,
-	getters
+	getters,
+	plugins: [(new VuexPersistence()).plugin]
 });
 
 const roundFloat = function(value, decimals) {

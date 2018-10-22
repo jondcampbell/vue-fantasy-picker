@@ -13,6 +13,7 @@
 - Player searching by partial name
 - Mark your team 
 - Mark players unavailable
+- Local storage
 
 ## TODO:
 - Compare players head to head and show who is the best across the categories
@@ -20,8 +21,6 @@
 - Team config setup(for available slots)
 - Change my positions count code to not be hardcoded to basketball
 - Import list of taken players(name match)
-
-- Local Datebase storage of state 
 - Simpler loading of files and evaulating so its smooth process and less tedious
 - Improve the performance of evaluating
 - Create alternate ranking method that gives double weight to players with an above average shooting percentage so we can try that out
