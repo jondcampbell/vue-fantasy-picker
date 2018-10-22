@@ -6,6 +6,7 @@
                 <div class="mb-3">
                     <player-summary :players="filteredPlayers" type="score"></player-summary>
                     <player-filtering ></player-filtering>
+                    <player-list-scoring  :players="filteredPlayers" v-if="! $store.state.search_text && this.position == 'all'"></player-list-scoring>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover scores-table">
@@ -48,6 +49,7 @@
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     import PlayerSummary from 'components/partials/PlayerSummary';
     import PlayerFiltering from 'components/partials/PlayerFiltering';
+    import PlayerListScoring from 'components/partials/PlayerListScoring';
 
 
     export default {
@@ -65,7 +67,8 @@
         components: {
             ScoreRow,
             PlayerSummary,
-            PlayerFiltering
+            PlayerFiltering,
+            PlayerListScoring
         }
     }
 </script>

@@ -9,7 +9,7 @@
         Player Name:
         <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
         &nbsp; &nbsp; &nbsp;
-        Availablity:
+        Availability:
         <select v-bind:value="$store.state.active_filter" v-on:change="changeFilter">
             <option value="none">Show All</option>
             <option value="untaken">Available</option>

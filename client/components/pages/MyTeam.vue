@@ -38,6 +38,7 @@
     import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     import PlayerSummary from 'components/partials/PlayerSummary';
 
+
     export default {
         methods: {},
         computed: {

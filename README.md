@@ -10,6 +10,7 @@
 - Highlight top players in each category and players who are in top X players in the most categories
 - Working settings tools to modify configuration
 - Player filter by position
+- Show the strength summary of my team or taken players(other teams)
 - Player searching by partial name
 - Mark your team 
 - Mark players unavailable
@@ -17,7 +18,6 @@
 
 ## TODO:
 - Compare players head to head and show who is the best across the categories
-- Strength of team scoring
 - Team config setup(for available slots)
 - Change my positions count code to not be hardcoded to basketball
 - Import list of taken players(name match)

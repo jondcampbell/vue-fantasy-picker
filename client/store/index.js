@@ -294,8 +294,6 @@ const getters = {
 		});
 		let rankingsAverage = rankingsSum / state.config.key_columns.length;
 
-		// TODO: Somehow we need to tone down stats that are too far out of line for players very good at one thing
-
 		rankings.total = roundFloat(rankingsAverage, 4);
 		return rankings;
 	},
@@ -328,7 +326,7 @@ const getters = {
 				return a[category] - b[category];
 			});
 		} else {
-			// Get the top players in this postive category
+			// Get the top players in this positive category
 			sortedPlayers = state.players.sort(function(a, b) {
 				return b[category] - a[category];
 			});
