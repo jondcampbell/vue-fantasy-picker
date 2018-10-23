@@ -152,11 +152,17 @@ const mutations = {
 			return player !== player_id;
 		});
 	},
+	RESET_LISTS(state){
+		state.taken_players = [];
+		state.my_team = [];
+		state.watch_list = [];
+	}
 };
 
 const actions = {
 	importPlayers({ commit, state }, importData) {
 
+		commit('RESET_LISTS');
 		let first_row = importData[0];
 		commit('SET_COLUMNS', first_row);
 		importData.shift();

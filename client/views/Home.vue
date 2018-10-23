@@ -121,6 +121,7 @@
 			}
 		},
         computed: {
+
             myPlayers() {
                 return this.$store.getters.myPlayers;
             },
