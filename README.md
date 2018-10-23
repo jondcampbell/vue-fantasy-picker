@@ -12,16 +12,15 @@
 - Player filter by position
 - Show the strength summary of my team or taken players(other teams)
 - Player searching by partial name
+- Highlight the best player and worst in each column on ranking views
 - Mark your team 
 - Mark players unavailable
 - Local storage
 
 ## TODO:
-- Compare players head to head and show who is the best across the categories
-- Team config setup(for available slots)
-- Change my positions count code to not be hardcoded to basketball
+- Fantasy team config setup(for available position slots)
 - Import list of taken players(name match)
-- Simpler loading of files and evaulating so its smooth process and less tedious
+- Simpler loading of files and evaluating so its smooth process and less tedious
 - Improve the performance of evaluating
 - Create alternate ranking method that gives double weight to players with an above average shooting percentage so we can try that out
 - Better horizontal table scrolling?
@@ -33,9 +32,7 @@
 ## Phase 2
 - Ability to dynamically set the players name column, scoring stats columns and the non-scoring stats columns. This can be done by clicking little icon on column title and setting option.
 - More color schemes!
-- Ability to work for more sports and fantasy modes 
 - Ability to draft a dream team by generating loads of teams and figuring out the best one
-- Team configuration of positions
 
 
 

@@ -31,7 +31,6 @@
             },
             teamOverallScore(){
                 let scores = this.teamScores;
-                console.log(scores);
                 return this.average(scores).toFixed(3);
             }
         }

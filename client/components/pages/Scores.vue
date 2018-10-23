@@ -27,6 +27,8 @@
                             <score-row
                             class=""
                             ref="score_items"
+                            :bestScores="bestScores"
+                            :worstScores="worstScores"
                             v-for="(scoreItem, index) in filteredPlayers"
                             v-bind:key="index"
                             v-bind:scoreData="scoreItem.scoreData"
@@ -62,6 +64,40 @@
                 // Make a copy of the array
                 return this.$store.getters.sortedFilteredPlayerScores;
 
+            },
+            bestScores(){
+                let bestScores = {};
+                let key_columns = this.$store.state.config.key_columns;
+
+                this.filteredPlayers.forEach((player) => {
+                    key_columns.forEach((column) => {
+
+                        if(typeof(bestScores[column]) === 'undefined'){
+                            bestScores[column] = player.scoreData[column];
+                        }
+                        if(player.scoreData[column] > bestScores[column] ){
+                            bestScores[column] = player.scoreData[column];
+                        }
+                    });
+                });
+                return bestScores;
+            },
+            worstScores(){
+                let worstScores = {};
+                let key_columns = this.$store.state.config.key_columns;
+
+                this.filteredPlayers.forEach((player) => {
+                    key_columns.forEach((column) => {
+
+                        if(typeof(worstScores[column]) === 'undefined'){
+                            worstScores[column] = player.scoreData[column];
+                        }
+                        if(player.scoreData[column] < worstScores[column] ){
+                            worstScores[column] = player.scoreData[column];
+                        }
+                    });
+                });
+                return worstScores;
             }
         },
         components: {

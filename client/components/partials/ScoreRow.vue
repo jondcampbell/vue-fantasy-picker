@@ -32,11 +32,18 @@
             'playerId',
             'playerName',
             'playerPosition',
-            'playerGames'
+            'playerGames',
+            'bestScores',
+            'worstScores'
         ],
         methods: {
             scoreClass(column_index) {
-                return { }
+                if(this.scoreData[column_index] >= this.bestScores[column_index]){
+                    return 'bg-success';
+                }
+                if(this.scoreData[column_index] <= this.worstScores[column_index]){
+                    return 'bg-danger';
+                }
             },
             addPlayerToWatchList(){
                 this.$store.dispatch('addToList',{ list: 'watch_list', player_id: this.playerId });
