@@ -14,6 +14,7 @@
             <option value="none">Show All</option>
             <option value="untaken">Available</option>
             <option value="mine">Mine</option>
+            <option value="watch">Watch</option>
             <option value="taken">Other Teams</option>
         </select>
     </div>

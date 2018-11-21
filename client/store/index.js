@@ -425,6 +425,17 @@ const getters = {
 
 			});
 		}
+		if(active_filter == 'watch'){
+			scores =  scores.filter(player => {
+
+				if(findPlayerIndexInList(state.watch_list, player.playerId) !== false){
+					return true;
+				} else {
+					return false;
+				}
+
+			});
+		}
 		if(active_filter == 'taken'){
 			scores =  scores.filter(player => {
 
