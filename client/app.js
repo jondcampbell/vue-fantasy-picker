@@ -1,6 +1,5 @@
 import Vue from 'vue';
-import bootstrap from 'bootstrap/scss/bootstrap.scss';
-import bootswatch from 'bootswatch/dist/flatly/bootstrap.css'; // Change to this another theme if we want
+import 'bootswatch/dist/flatly/bootstrap.css'; // Change to this another theme if we want
 import { sync } from 'vuex-router-sync';
 import App from './components/App';
 import router from './router';

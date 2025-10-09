@@ -80,13 +80,14 @@ const mutations = {
 			});
 
 			if(cleanPlayerIndex < 0){
-				// Fix player names
+				// Fix player names: only trim if a backslash exists, otherwise keep as-is
 				let name = player[nameColumn];
-				let junk = name.indexOf('\\');
-				let cleanName = name.substring(0, junk);
-
-				// Set the new name
-				player[nameColumn] = cleanName;
+				if (typeof name === 'string') {
+					let junk = name.indexOf('\\');
+					let cleanName = (junk >= 0) ? name.substring(0, junk) : name;
+					// Set the new name (trim stray whitespace)
+					player[nameColumn] = cleanName.trim();
+				}
 
 				let gamesPlayed = player[state.config.games_column];
 

@@ -77,4 +77,17 @@ $ npm run lint
 
 ---
 
+### Maintenance notes
+- Replaced deprecated node-sass with dart-sass (the `sass` package) and updated sass-loader to a version compatible with Webpack 3.
+- Removed Bootstrap SCSS import to avoid Sass @import deprecation warnings. We now rely on the precompiled Bootswatch CSS theme only.
+- Updated selected dependencies for stability:
+  - papaparse → ^5.4.1
+  - vue-router → ^3.5.4 (Vue 2 compatible)
+- After pulling these changes, delete existing lockfile and reinstall to avoid native binding leftovers from node-sass and to refresh dependency tree:
+  - npm users: `rm -f package-lock.json && rm -rf node_modules && npm install`
+  - yarn users: `rm -f yarn.lock && rm -rf node_modules && yarn`
+- If you still see errors related to node-sass or Sass warnings from third-party packages, ensure no global caches are interfering and that your Node version is supported by the installed `sass` release.
+- Notes on SCSS usage:
+  - Local styles currently don’t use deprecated Sass functions like lighten() or abs(). If adding new SCSS, prefer `@use 'sass:color'` and `@use 'sass:math'` with `color.scale()/color.adjust()` and `math.abs()` respectively, and avoid `@import` in favor of `@use`/`@forward`.
+
 
