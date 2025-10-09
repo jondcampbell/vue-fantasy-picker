@@ -1,6 +1,13 @@
 {
     "plugins": ["testcafe"],
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+        "requireConfigFile": false,
+        "sourceType": "module",
+        "babelOptions": {
+            "presets": ["@babel/preset-env"]
+        }
+    },
 	"env": {
 		"es6": true,
 		"browser": true,
