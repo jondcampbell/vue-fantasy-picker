@@ -1,8 +1,5 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 import VuexPersistence from 'vuex-persist'
-
-Vue.use(Vuex);
 
 const state = {
 	config: {
@@ -595,7 +592,7 @@ const getters = {
     }
 };
 
-const store = new Vuex.Store({
+const store = createStore({
 	state,
 	mutations,
 	actions,

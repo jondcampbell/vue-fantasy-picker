@@ -1,18 +1,16 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import 'bootswatch/dist/flatly/bootstrap.css'; // Change to this another theme if we want
-import { sync } from 'vuex-router-sync';
-import App from './components/App';
+import 'sweetalert2/dist/sweetalert2.min.css';
+import App from './components/App.vue';
 import router from './router';
 import store from './store';
-import 'vue-awesome/icons';
-import Icon from 'vue-awesome/components/Icon';
+import Icon from './components/Icon.vue';
 
-sync(store, router);
-Vue.component('icon', Icon);
-const app = new Vue({
-  router,
-  store,
-  ...App
-})
+const app = createApp(App);
+
+app.use(router);
+app.use(store);
+app.component('icon', Icon);
+app.mount('#app');
 
 export { app, router, store }

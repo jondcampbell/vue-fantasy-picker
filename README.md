@@ -78,20 +78,40 @@ $ npm run lint
 ---
 
 ### Maintenance notes
-- Replaced deprecated node-sass with dart-sass (the `sass` package) and updated sass-loader to a version compatible with Webpack 3.
-- Removed Bootstrap SCSS import to avoid Sass @import deprecation warnings. We now rely on the precompiled Bootswatch CSS theme only.
-- Dependency cleanup to reduce deprecation warnings during install:
-  - Switched ESLint parser from babel-eslint to @babel/eslint-parser (ESLint-only change).
-  - Upgraded html-webpack-plugin to ^3.2.0 (last version compatible with Webpack 3) to replace the out-of-support v2.
-  - Removed bootstrap from devDependencies (not used at runtime); this also removes the deprecated popper.js v1 from the tree.
-  - Removed rimraf from devDependencies (was unused); eliminates “Rimraf versions prior to v4” notice.
-- Known remaining deprecations (require a toolchain upgrade):
-  - extract-text-webpack-plugin is deprecated in favor of mini-css-extract-plugin (requires Webpack ≥4). We’re still on Webpack 3.
-  - Vue 2.x is EOL. Migrating to Vue 3 + Vite is recommended for the future.
-- After pulling these changes, delete existing lockfile and reinstall to refresh dependency tree:
-  - npm users: `rm -f package-lock.json && rm -rf node_modules && npm install`
-  - yarn users: `rm -f yarn.lock && rm -rf node_modules && yarn`
-- Notes on SCSS usage:
-  - Local styles currently don’t use deprecated Sass functions like lighten() or abs(). If adding new SCSS, prefer `@use 'sass:color'` and `@use 'sass:math'` with `color.scale()/color.adjust()` and `math.abs()` respectively, and avoid `@import` in favor of `@use`/`@forward`.
+- Migrated the project to Vue 3 + Vite (no more Webpack 3).
+  - Dev: `npm run dev` (Vite)
+  - Build: `npm run build`
+  - Preview production build: `npm run preview`
+- Routing: upgraded to `vue-router@^4`.
+- State: upgraded to `vuex@^4`, with `vuex-persist` continuing to persist to localStorage.
+- Icons: replaced the `vue-awesome` dependency with a lightweight built-in Icon component (`client/components/Icon.vue`) to minimize dependencies.
+- Config UI: replaced `vue-multiselect` with native `<select>` elements for compatibility with Vue 3 and to reduce bundle size.
+- Aliases: Vite config adds path aliases (components, views, store). See `vite.config.js`.
+- Styling: still using precompiled Bootswatch (Flatly) CSS via JS import.
+
+After pulling changes, it's a good idea to refresh your install to clean out legacy artifacts:
+- npm users: `rm -f package-lock.json && rm -rf node_modules && npm install`
+- yarn users: `rm -f yarn.lock && rm -rf node_modules && yarn`
+- pnpm users: `rm -f pnpm-lock.yaml && rm -rf node_modules && pnpm install`
+
+Notes on SCSS usage:
+- Local styles currently don’t use deprecated Sass functions like lighten() or abs(). If adding new SCSS, prefer `@use 'sass:color'` and `@use 'sass:math'` with `color.scale()/color.adjust()` and `math.abs()` respectively, and avoid `@import` in favor of `@use`/`@forward`.
 
 
+
+
+---
+
+Maintenance update (2025-10-09)
+- Fixed Vite/PostCSS startup error: added PostCSS plugins to devDependencies (`postcss`, `autoprefixer`, and `postcss-nested`). The PostCSS config remains in package.json under the `postcss` key.
+- Note on Vite CJS Node API deprecation: this project uses an ESM `vite.config.js`. If you see a log like "The CJS build of Vite's Node API is deprecated", it likely originates from external tooling that programmatically requires Vite. The app itself is already configured for ESM.
+
+Maintenance update (2025-10-10)
+- Fixed runtime error with SweetAlert2 CSS import under Vite by upgrading to `sweetalert2@^11` and switching to the ESM API.
+  - Components now call `Swal.fire(...)` instead of the legacy `sweetAlert(...)`.
+  - SweetAlert2 CSS is imported once globally in `client/app.js`.
+  - Removed unused SweetAlert2 imports from components that didn’t use it.
+- After pulling changes, run a clean install to update the lockfile:
+  - npm: `rm -rf node_modules package-lock.json && npm install`
+  - pnpm: `rm -rf node_modules pnpm-lock.yaml && pnpm install`
+  - yarn: `rm -rf node_modules yarn.lock && yarn`

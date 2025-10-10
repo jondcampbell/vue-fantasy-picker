@@ -35,16 +35,16 @@
 </template>
 
 <script>
-    import PlayerRow from 'components/partials/PlayerRow';
-    import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
-    import PlayerSummary from 'components/partials/PlayerSummary';
-    import PlayerFiltering from 'components/partials/PlayerFiltering';
+    import PlayerRow from 'components/partials/PlayerRow.vue';
+    import Swal from 'sweetalert2';
+    import PlayerSummary from 'components/partials/PlayerSummary.vue';
+    import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
 
     export default {
         methods: {
             evaluatePlayers() {
                 this.$store.dispatch('evaluatePlayers');
-                sweetAlert("Woot!", "We evaluated your players", "success");
+                Swal.fire("Woot!", "We evaluated your players", "success");
             }
         },
         computed: {

@@ -36,37 +36,51 @@
                     <h5>Columns</h5>
                     <div class="form-group">
                         Name Column:
-                        <multiselect @input="changeNameColumn" v-bind:value="name_column" placeholder="Select Name Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
+                        <select class="form-control" :value="name_column" @change="changeNameColumn(parseInt($event.target.value))">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         Position Column:
-                        <multiselect @input="changePosColumn" v-bind:value="pos_column" placeholder="Select Position Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
+                        <select class="form-control" :value="pos_column" @change="changePosColumn(parseInt($event.target.value))">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         Games Played Column:
-                        <multiselect @input="changeGamesColumn" v-bind:value="games_column" placeholder="Select Games Played Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
+                        <select class="form-control" :value="games_column" @change="changeGamesColumn(parseInt($event.target.value))">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         Minutes Played Column:
-                        <multiselect @input="changeMinutesColumn" v-bind:value="minutes_column" placeholder="Select Minutes Played Column" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :taggable="false" ></multiselect>
+                        <select class="form-control" :value="minutes_column" @change="changeMinutesColumn(parseInt($event.target.value))">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         Key Positive Columns:
-                        <multiselect @input="changeKeyColumns" v-bind:value="key_columns" placeholder="Select Key Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
+                        <select class="form-control" multiple :value="key_columns" @change="onMultiChange($event, 'key_columns')">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         Key Negative Columns:
-                        <multiselect @input="changeNegativeColumns" v-bind:value="negative_columns" placeholder="Select Negative Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
+                        <select class="form-control" multiple :value="negative_columns" @change="onMultiChange($event, 'negative_columns')">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         Yearly Total Based Columns:
-                        <multiselect @input="changeYearlyTotalColumns" v-bind:value="yearly_total_columns" placeholder="Select Yearly Total Columns" :show-labels="false" :options="available_columns_simple" :custom-label="columnLabel" :multiple="true" :taggable="false" ></multiselect>
+                        <select class="form-control" multiple :value="yearly_total_columns" @change="onMultiChange($event, 'yearly_total_columns')">
+                            <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                        </select>
 
                     </div>
                 </div>
@@ -76,9 +90,7 @@
 </template>
 
 <script>
-    import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
     import { mapState } from 'vuex';
-    import Multiselect from 'vue-multiselect';
 
     export default {
         methods: {
@@ -111,6 +123,10 @@
             },
             changeMinutesColumn: function(value) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'minutes_column', config_value: value });
+            },
+            onMultiChange: function(e, key) {
+                const values = Array.from(e.target.selectedOptions).map(o => parseInt(o.value));
+                this.$store.dispatch('changeConfigSetting',{ config_key: key, config_value: values });
             },
             changeNegativeColumns: function(value) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'negative_columns', config_value: value });
@@ -153,12 +169,9 @@
 
                 available_columns: state => state.columns
             })
-        },components: {
-            Multiselect
-        },
+        }
     }
 </script>
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style lang="scss">
     .config-wrapper {
     }

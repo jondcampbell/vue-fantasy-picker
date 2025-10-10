@@ -47,11 +47,10 @@
 </template>
 
 <script>
-    import ScoreRow from 'components/partials/ScoreRow';
-    import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
-    import PlayerSummary from 'components/partials/PlayerSummary';
-    import PlayerFiltering from 'components/partials/PlayerFiltering';
-    import PlayerListScoring from 'components/partials/PlayerListScoring';
+    import ScoreRow from 'components/partials/ScoreRow.vue';
+    import PlayerSummary from 'components/partials/PlayerSummary.vue';
+    import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
+    import PlayerListScoring from 'components/partials/PlayerListScoring.vue';
 
 
     export default {

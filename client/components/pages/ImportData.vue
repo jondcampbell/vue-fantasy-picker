@@ -4,7 +4,7 @@
         <section class="row ">
             <div class="col-6">
                 <label class="btn btn-primary">
-                    Browse <input type="file" id="importFile" v-on:change="previewFiles" value="Import" hidden/>
+                    Browse <input type="file" id="importFile" v-on:change="previewFiles" hidden/>
                 </label>
             </div>
             <div class="col-6">
@@ -17,7 +17,7 @@
 
 <script>
     import papaparse from 'papaparse';
-    import sweetAlert from 'sweetalert2/src/sweetalert2.all.js';
+    import Swal from 'sweetalert2';
     export default {
         data: function () {
             return {
@@ -38,10 +38,12 @@
                     papaparse.parse(e.target.result, {
                         complete: function(results) {
                             vuethis.$store.dispatch('importPlayers', results.data);
+                            const input = document.getElementById('importFile');
+                            if (input) input.value = '';
+                            vuethis.hasFiles = false;
+                            Swal.fire("Woot!", "We imported your players", "success");
                         }
                     });
-
-                    sweetAlert("Woot!", "We imported your players", "success");
                 }
 
                 fr.readAsText(files.item(0));
