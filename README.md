@@ -111,6 +111,9 @@ Maintenance update (2025-10-10)
   - Components now call `Swal.fire(...)` instead of the legacy `sweetAlert(...)`.
   - SweetAlert2 CSS is imported once globally in `client/app.js`.
   - Removed unused SweetAlert2 imports from components that didn’t use it.
+- Icons: switched the internal Icon component to Font Awesome (free-solid) using `@fortawesome/vue-fontawesome`.
+  - Installed `@fortawesome/fontawesome-svg-core` and reused the existing `@fortawesome/free-solid-svg-icons`.
+  - Existing usages like `<icon name="binoculars"/>` remain the same; mapping now renders actual FA SVGs.
 - After pulling changes, run a clean install to update the lockfile:
   - npm: `rm -rf node_modules package-lock.json && npm install`
   - pnpm: `rm -rf node_modules pnpm-lock.yaml && pnpm install`

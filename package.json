@@ -40,6 +40,9 @@
     "ie > 8"
   ],
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/vue-fontawesome": "^3.0.6",
     "babel-runtime": "^6.18.0",
     "bootswatch": "^4.6.1",
     "papaparse": "^5.4.1",
@@ -52,19 +55,19 @@
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.16.0",
     "@babel/eslint-parser": "^7.23.3",
+    "@babel/preset-env": "^7.16.0",
+    "@vitejs/plugin-vue": "^5.1.0",
+    "@vue/compiler-sfc": "^3.4.21",
+    "autoprefixer": "^10.4.20",
     "eslint-config-vue": "latest",
     "eslint-plugin-testcafe": "^0.2.0",
     "eslint-plugin-vue": "latest",
+    "postcss": "^8.4.47",
+    "postcss-nested": "^6.0.1",
     "sass": "^1.69.0",
     "testcafe": "^0.12.1",
     "vite": "^5.4.0",
-    "@vitejs/plugin-vue": "^5.1.0",
-    "@vue/compiler-sfc": "^3.4.21",
-    "xo": "^0.18.0",
-    "postcss": "^8.4.47",
-    "autoprefixer": "^10.4.20",
-    "postcss-nested": "^6.0.1"
+    "xo": "^0.18.0"
   }
 }
