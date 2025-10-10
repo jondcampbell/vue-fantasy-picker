@@ -119,6 +119,10 @@ Maintenance update (2025-10-10)
   - Store: precompute best/worst scores for the currently filtered set; components now read from getters instead of recomputing.
   - Store: normalize numeric fields on import and compute per-game totals safely; avoids repeated parsing and NaNs.
   - UI: debounced search input (200ms) to reduce unnecessary recomputations while typing.
+- New: Configurable category average pool.
+  - In Configure -> General, choose how many players to use when computing the category baseline average: All (valid players), Top 100, Top 150, or Top 200.
+  - The baseline now uses the top N players in that category (sorted correctly for positive/negative stats) after applying your minimum games/minutes filters.
+  - Tip: click "Evaluate Players" again after changing this to recompute scores.
 - After pulling changes, run a clean install to update the lockfile:
   - npm: `rm -rf node_modules package-lock.json && npm install`
   - pnpm: `rm -rf node_modules pnpm-lock.yaml && pnpm install`

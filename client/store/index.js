@@ -7,6 +7,7 @@ const state = {
 		teams_in_league:12,
 		players_per_team:13,
 		average_mode: 1,
+		average_pool_size: 'all',
 		min_games_played: 10,
 		min_minutes_played: 8,
 		screen:1,
@@ -17,7 +18,7 @@ const state = {
 		],
 		games_column: 5,
 		minutes_column: 7,
-		pos_column: 2,
+		pos_column: 4,
 		yearly_total_columns: [
 			11,
 			23,
@@ -367,12 +368,20 @@ const getters = {
 		});
 
 
-		let numberOfPlayers = parseInt(getters.getPlayerGroupSize);
-
-		// We shouldn't be expecting more players than our total players we have
-		if (numberOfPlayers > sortedPlayers.length) {
+		// Determine the pool size for averaging
+		let pool = state.config.average_pool_size;
+		let numberOfPlayers;
+		if (typeof pool === 'number') {
+			numberOfPlayers = pool;
+		} else if (pool === 'all') {
 			numberOfPlayers = sortedPlayers.length;
+		} else {
+			// Fallback to legacy behavior if not set
+			numberOfPlayers = parseInt(getters.getPlayerGroupSize);
 		}
+		
+		// Ensure we don't exceed available players
+		numberOfPlayers = Math.min(numberOfPlayers, sortedPlayers.length);
 		let bestPlayers = sortedPlayers.slice(0, numberOfPlayers);
 
 

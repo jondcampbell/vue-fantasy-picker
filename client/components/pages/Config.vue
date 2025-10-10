@@ -12,6 +12,15 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        Category average pool:
+                        <select class="form-control" :value="String(average_pool_size === undefined ? 'all' : average_pool_size)" @change="changeAveragePoolSize">
+                            <option value="all">All (valid players)</option>
+                            <option value="100">Top 100</option>
+                            <option value="150">Top 150</option>
+                            <option value="200">Top 200</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         Teams in League: <input class="form-control" type="number" v-bind:value="teams_in_league" v-on:input="changeTeamsInLeague"/>
                     </div>
                     <div class="form-group">
@@ -64,21 +73,21 @@
 
                     <div class="form-group">
                         Key Positive Columns:
-                        <select class="form-control" multiple :value="key_columns" @change="onMultiChange($event, 'key_columns')">
+                        <select class="form-control" multiple v-model="keyColumnsModel">
                             <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         Key Negative Columns:
-                        <select class="form-control" multiple :value="negative_columns" @change="onMultiChange($event, 'negative_columns')">
+                        <select class="form-control" multiple v-model="negativeColumnsModel">
                             <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         Yearly Total Based Columns:
-                        <select class="form-control" multiple :value="yearly_total_columns" @change="onMultiChange($event, 'yearly_total_columns')">
+                        <select class="form-control" multiple v-model="yearlyTotalColumnsModel">
                             <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                         </select>
 
@@ -96,6 +105,11 @@
         methods: {
             changeAverageMode: function(e) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'average_mode', config_value: parseInt(e.target.value) });
+            },
+            changeAveragePoolSize: function(e) {
+                const raw = e.target.value;
+                const value = raw === 'all' ? 'all' : parseInt(raw);
+                this.$store.dispatch('changeConfigSetting',{ config_key: 'average_pool_size', config_value: value });
             },
             changeTeamsInLeague: function(e) {
                 this.$store.dispatch('changeConfigSetting',{ config_key: 'teams_in_league', config_value: parseInt(e.target.value) });
@@ -151,8 +165,37 @@
                     return index;
                 });
             },
+            // Two-way bindings for multi-selects
+            keyColumnsModel: {
+                get() {
+                    return this.$store.state.config.key_columns;
+                },
+                set(values) {
+                    const nums = values.map(v => parseInt(v));
+                    this.$store.dispatch('changeConfigSetting', { config_key: 'key_columns', config_value: nums });
+                }
+            },
+            negativeColumnsModel: {
+                get() {
+                    return this.$store.state.config.negative_columns;
+                },
+                set(values) {
+                    const nums = values.map(v => parseInt(v));
+                    this.$store.dispatch('changeConfigSetting', { config_key: 'negative_columns', config_value: nums });
+                }
+            },
+            yearlyTotalColumnsModel: {
+                get() {
+                    return this.$store.state.config.yearly_total_columns;
+                },
+                set(values) {
+                    const nums = values.map(v => parseInt(v));
+                    this.$store.dispatch('changeConfigSetting', { config_key: 'yearly_total_columns', config_value: nums });
+                }
+            },
             ...mapState({
                 average_mode: state => state.config.average_mode,
+                average_pool_size: state => state.config.average_pool_size,
                 teams_in_league: state => state.config.teams_in_league,
                 players_per_team: state => state.config.players_per_team,
                 top_players: state => state.config.top_players,
