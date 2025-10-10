@@ -65,38 +65,10 @@
 
             },
             bestScores(){
-                let bestScores = {};
-                let key_columns = this.$store.state.config.key_columns;
-
-                this.filteredPlayers.forEach((player) => {
-                    key_columns.forEach((column) => {
-
-                        if(typeof(bestScores[column]) === 'undefined'){
-                            bestScores[column] = player.scoreData[column];
-                        }
-                        if(player.scoreData[column] > bestScores[column] ){
-                            bestScores[column] = player.scoreData[column];
-                        }
-                    });
-                });
-                return bestScores;
+                return this.$store.getters.bestScores;
             },
             worstScores(){
-                let worstScores = {};
-                let key_columns = this.$store.state.config.key_columns;
-
-                this.filteredPlayers.forEach((player) => {
-                    key_columns.forEach((column) => {
-
-                        if(typeof(worstScores[column]) === 'undefined'){
-                            worstScores[column] = player.scoreData[column];
-                        }
-                        if(player.scoreData[column] < worstScores[column] ){
-                            worstScores[column] = player.scoreData[column];
-                        }
-                    });
-                });
-                return worstScores;
+                return this.$store.getters.worstScores;
             }
         },
         components: {

@@ -65,15 +65,21 @@ const mutations = {
 	},
 	SET_PLAYERS(state, players) {
 
-		let nameColumn = state.config.name_column;
-		let idColumn = state.config.id_column;
+		const nameColumn = state.config.name_column;
+		const idColumn = state.config.id_column;
+		const gamesCol = state.config.games_column;
+		const minutesCol = state.config.minutes_column;
+		const keyCols = state.config.key_columns;
+		const totalCols = state.config.yearly_total_columns;
 		let cleanPlayers = [];
-		players.forEach(function(player,playerIndex) {
+		players.forEach(function(player) {
 
-			let playerId = player[idColumn];
+			// Normalize id to number early
+			const rawId = player[idColumn];
+			const normalizedId = parseInt(rawId);
 
-			let cleanPlayerIndex = cleanPlayers.findIndex(function(cleanPlayer, index) {
-				return cleanPlayer[state.config.id_column] == playerId;
+			let cleanPlayerIndex = cleanPlayers.findIndex(function(cleanPlayer) {
+				return parseInt(cleanPlayer[idColumn]) === normalizedId;
 			});
 
 			if(cleanPlayerIndex < 0){
@@ -86,11 +92,20 @@ const mutations = {
 					player[nameColumn] = cleanName.trim();
 				}
 
-				let gamesPlayed = player[state.config.games_column];
+				// Coerce core numeric fields once
+				player[idColumn] = normalizedId;
+				player[gamesCol] = toNumber(player[gamesCol]);
+				player[minutesCol] = toNumber(player[minutesCol]);
+				// Coerce key and totals columns to numbers
+				keyCols.forEach(col => { player[col] = toNumber(player[col]); });
+				totalCols.forEach(col => { player[col] = toNumber(player[col]); });
 
-				// Adjust the yearly totals to be based on games played
-				state.config.yearly_total_columns.forEach(function(column, columnIndex) {
-					player[column] = roundFloat(player[column] / gamesPlayed, 4);
+				const gamesPlayed = player[gamesCol];
+
+				// Adjust the yearly totals to per-game safely
+				totalCols.forEach(function(column) {
+					const val = player[column];
+					player[column] = gamesPlayed > 0 ? roundFloat(val / gamesPlayed, 4) : 0;
 				});
 				cleanPlayers.push(player);
 			}
@@ -326,12 +341,12 @@ const getters = {
 		// Check if the category should be sorted negative
 		if (state.config.negative_columns.includes(category)) {
 			// Get the top players in this negative category
-			sortedPlayers = state.players.sort(function(a, b) {
+			sortedPlayers = state.players.slice().sort(function(a, b) {
 				return a[category] - b[category];
 			});
 		} else {
 			// Get the top players in this positive category
-			sortedPlayers = state.players.sort(function(a, b) {
+			sortedPlayers = state.players.slice().sort(function(a, b) {
 				return b[category] - a[category];
 			});
 		}
@@ -586,10 +601,76 @@ const getters = {
 			return state.columns[state.active_category];
 		}
 	},
+	// Fast lookup sets for list membership
+	watchedSet: (state) => new Set(state.watch_list),
+	myTeamSet: (state) => new Set(state.my_team),
+	takenSet: (state) => new Set(state.taken_players),
+	isWatched: (state, getters) => (id) => getters.watchedSet.has(parseInt(id)),
+	isOnTeam: (state, getters) => (id) => getters.myTeamSet.has(parseInt(id)),
+	isTaken: (state, getters) => (id) => getters.takenSet.has(parseInt(id)),
+
+	// Filtered scores without sorting (used by best/worst and summaries)
+	filteredScores: (state) => {
+		let scores = state.scores.concat();
+		const active_filter = state.active_filter;
+		const active_position = state.active_position;
+		const search_text = state.search_text;
+
+		if (active_position !== 'all') {
+			scores = scores.filter(p => p.playerPosition == active_position);
+		}
+		if (search_text !== '') {
+			const needle = search_text.toLowerCase();
+			scores = scores.filter(p => p.playerName.toLowerCase().includes(needle));
+		}
+		if (active_filter === 'untaken') {
+			const unavailable = new Set([...state.taken_players, ...state.my_team]);
+			scores = scores.filter(p => !unavailable.has(p.playerId));
+		} else if (active_filter === 'mine') {
+			const mine = new Set(state.my_team);
+			scores = scores.filter(p => mine.has(p.playerId));
+		} else if (active_filter === 'watch') {
+			const watch = new Set(state.watch_list);
+			scores = scores.filter(p => watch.has(p.playerId));
+		} else if (active_filter === 'taken') {
+			const taken = new Set(state.taken_players);
+			scores = scores.filter(p => taken.has(p.playerId));
+		}
+		return scores;
+	},
+
+	// Precompute best/worst for current filtered set
+	bestScores: (state, getters) => {
+		const list = getters.filteredScores;
+		const result = {};
+		state.config.key_columns.forEach(col => {
+			let max = undefined;
+			for (const player of list) {
+				const val = player.scoreData[col];
+				if (max === undefined || val > max) max = val;
+			}
+			if (max !== undefined) result[col] = max;
+		});
+		return result;
+	},
+	worstScores: (state, getters) => {
+		const list = getters.filteredScores;
+		const result = {};
+		state.config.key_columns.forEach(col => {
+			let min = undefined;
+			for (const player of list) {
+				const val = player.scoreData[col];
+				if (min === undefined || val < min) min = val;
+			}
+			if (min !== undefined) result[col] = min;
+		});
+		return result;
+	},
+
 	// TODO: Might not need this one
 	getConfigValue: (state, getters) => (config_key) => {
 		return state.config[config_key];
-    }
+	}
 };
 
 const store = createStore({
@@ -602,6 +683,12 @@ const store = createStore({
 
 const roundFloat = function(value, decimals) {
 	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+};
+
+const toNumber = function(value) {
+	if (value === '' || value === null || typeof value === 'undefined') return 0;
+	const n = Number(value);
+	return isNaN(n) ? 0 : n;
 };
 
 const findPlayerIndexInList = function(list,player_id){

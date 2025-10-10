@@ -65,29 +65,14 @@
             }
         },
         computed: {
-            playerIndex(){
-                let playerId = this.playerId;
-                return this.$store.state.players.findIndex(function(player, index) {
-                    return player[this.$store.state.config.id_column] == playerId;
-                });
-            },
             watched(){
-                if(this.$store.state.watch_list.includes(parseInt(this.playerId))){
-                    return true;
-                }
-                return false;
+                return this.$store.getters.isWatched(this.playerId);
             },
             onTeam(){
-                if(this.$store.state.my_team.includes(parseInt(this.playerId))){
-                    return true;
-                }
-                return false;
+                return this.$store.getters.isOnTeam(this.playerId);
             },
             taken(){
-                if(this.$store.state.taken_players.includes(parseInt(this.playerId))){
-                    return true;
-                }
-                return false;
+                return this.$store.getters.isTaken(this.playerId);
             }
         }
     }

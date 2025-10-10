@@ -59,26 +59,17 @@
             watched(){
                 const id_column = this.$store.state.config.id_column;
                 const player_id = this.player[id_column];
-                if(this.$store.state.watch_list.includes(parseInt(player_id))){
-                    return true;
-                }
-                return false;
+                return this.$store.getters.isWatched(player_id);
             },
             onTeam(){
                 const id_column = this.$store.state.config.id_column;
                 const player_id = this.player[id_column];
-                if(this.$store.state.my_team.includes(parseInt(player_id))){
-                    return true;
-                }
-                return false;
+                return this.$store.getters.isOnTeam(player_id);
             },
             taken(){
                 const id_column = this.$store.state.config.id_column;
                 const player_id = this.player[id_column];
-                if(this.$store.state.taken_players.includes(parseInt(player_id))){
-                    return true;
-                }
-                return false;
+                return this.$store.getters.isTaken(player_id);
             }
         }
     }

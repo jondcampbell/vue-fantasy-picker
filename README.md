@@ -114,6 +114,11 @@ Maintenance update (2025-10-10)
 - Icons: switched the internal Icon component to Font Awesome (free-solid) using `@fortawesome/vue-fontawesome`.
   - Installed `@fortawesome/fontawesome-svg-core` and reused the existing `@fortawesome/free-solid-svg-icons`.
   - Existing usages like `<icon name="binoculars"/>` remain the same; mapping now renders actual FA SVGs.
+- Performance: made the app snappier without changing behavior.
+  - Store: added Set-based getters and boolean helpers for watch/myTeam/taken to eliminate per-row Array.includes lookups.
+  - Store: precompute best/worst scores for the currently filtered set; components now read from getters instead of recomputing.
+  - Store: normalize numeric fields on import and compute per-game totals safely; avoids repeated parsing and NaNs.
+  - UI: debounced search input (200ms) to reduce unnecessary recomputations while typing.
 - After pulling changes, run a clean install to update the lockfile:
   - npm: `rm -rf node_modules package-lock.json && npm install`
   - pnpm: `rm -rf node_modules pnpm-lock.yaml && pnpm install`

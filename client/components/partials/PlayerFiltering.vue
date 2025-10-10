@@ -23,14 +23,22 @@
 <script>
     export default {
         props: [],
+        data() {
+            return { searchTimer: null };
+        },
         methods: {
             changePosition(event){
                 let position = event.target.value;
         	    this.$store.dispatch('changeActivePosition', position);
             },
             changeSearchText(event){
-                let search_text = event.target.value;
-        	    this.$store.dispatch('changeSearchText', search_text);
+                const value = event.target.value;
+                if (this.searchTimer) {
+                    clearTimeout(this.searchTimer);
+                }
+                this.searchTimer = setTimeout(() => {
+        	        this.$store.dispatch('changeSearchText', value);
+                }, 200);
             },
             changeFilter(event){
                 let filter = event.target.value;
