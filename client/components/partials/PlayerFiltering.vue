@@ -1,22 +1,29 @@
 <template>
-    <div>
-        Position:
-        <select v-bind:value="$store.state.active_position" v-on:change="changePosition">
-            <option value="all">All</option>
-            <option v-for="position in $store.state.config.positions" v-bind:value="position">{{position}}</option>
-        </select>
-        &nbsp; &nbsp; &nbsp;
-        Player Name:
-        <input type="text" v-bind:value="$store.state.search_text"  v-on:input="changeSearchText"/>
-        &nbsp; &nbsp; &nbsp;
-        Availability:
-        <select v-bind:value="$store.state.active_filter" v-on:change="changeFilter">
-            <option value="none">Show All</option>
-            <option value="untaken">Available</option>
-            <option value="mine">Mine</option>
-            <option value="watch">Watch</option>
-            <option value="taken">Other Teams</option>
-        </select>
+    <div class="grid gap-3 sm:grid-cols-[10rem_1fr_12rem]">
+        <label>
+            <span class="label">Position</span>
+            <select class="field" v-bind:value="$store.state.active_position" v-on:change="changePosition">
+                <option value="all">All</option>
+                <option v-for="position in $store.state.config.positions" :key="position" v-bind:value="position">{{position}}</option>
+            </select>
+        </label>
+        <label>
+            <span class="label">Player Name</span>
+            <span class="relative block">
+                <icon name="search" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted"></icon>
+                <input type="search" class="field pl-9" placeholder="Search players…" v-bind:value="$store.state.search_text" v-on:input="changeSearchText"/>
+            </span>
+        </label>
+        <label>
+            <span class="label">Availability</span>
+            <select class="field" v-bind:value="$store.state.active_filter" v-on:change="changeFilter">
+                <option value="none">Show All</option>
+                <option value="untaken">Available</option>
+                <option value="mine">Mine</option>
+                <option value="watch">Watch</option>
+                <option value="taken">Other Teams</option>
+            </select>
+        </label>
     </div>
 </template>
 
@@ -50,7 +57,3 @@
         }
     }
 </script>
-
-<style lang="scss">
-
-</style>

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A tool for evaluating the stats of fantasy sports players",
   "main": "client/index.js",
+  "type": "module",
   "scripts": {
     "test": "testcafe all test/e2e/index.js --app \"npm run dev\" --app-init-delay 10000",
     "build": "vite build",
@@ -30,12 +31,6 @@
       ]
     ]
   },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {},
-      "postcss-nested": {}
-    }
-  },
   "browserslist": [
     "last 2 versions",
     "ie > 8"
@@ -45,7 +40,6 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/vue-fontawesome": "^3.0.6",
     "babel-runtime": "^6.18.0",
-    "bootswatch": "^4.6.1",
     "papaparse": "^5.4.1",
     "promise-polyfill": "^6.1.0",
     "sweetalert2": "^11.12.4",
@@ -58,15 +52,16 @@
     "@babel/core": "^7.16.0",
     "@babel/eslint-parser": "^7.23.3",
     "@babel/preset-env": "^7.16.0",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-vue": "^5.1.0",
     "@vue/compiler-sfc": "^3.4.21",
-    "autoprefixer": "^10.4.20",
+    "@vue/test-utils": "^2.5.1",
     "eslint-config-vue": "latest",
     "eslint-plugin-testcafe": "^0.2.0",
     "eslint-plugin-vue": "latest",
-    "postcss": "^8.4.47",
-    "postcss-nested": "^6.0.1",
-    "sass": "^1.69.0",
+    "happy-dom": "^20.14.6",
+    "tailwindcss": "^4.3.3",
     "testcafe": "^0.12.1",
     "vite": "^5.4.0",
     "vitest": "^3.2.7",

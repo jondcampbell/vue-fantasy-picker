@@ -1,12 +1,11 @@
 <template>
-    <div>
-        <strong>Player count: {{ playerCount }}</strong><br />
-        <span class="">SG: {{sgPlayers}}</span> &nbsp; &nbsp;
-        <span class="">PG: {{pgPlayers}}</span> &nbsp; &nbsp;
-        <span class="">C: {{cPlayers}}</span> &nbsp; &nbsp;
-        <span class="">PF: {{pfPlayers}}</span> &nbsp; &nbsp;
-        <span class="">SF: {{sfPlayers}}</span> &nbsp; &nbsp;
-        <br />
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div class="text-sm"><span class="text-lg font-semibold tabular-nums">{{ playerCount }}</span> <span class="text-muted">players</span></div>
+        <div class="flex flex-wrap gap-1.5">
+            <span class="chip" v-for="position in $store.state.config.positions" :key="position">
+                <span class="text-muted">{{ position }}</span> <span class="tabular-nums">{{ countPlayerPosition(position) }}</span>
+            </span>
+        </div>
     </div>
 </template>
 
@@ -32,26 +31,7 @@
         computed: {
             playerCount() {
                 return this.players.length;
-            },
-            sgPlayers() {
-                return this.countPlayerPosition('SG');
-            },
-            sfPlayers() {
-                return this.countPlayerPosition('SF');
-            },
-            pfPlayers() {
-                return this.countPlayerPosition('PF');
-            },
-            pgPlayers() {
-                return this.countPlayerPosition('PG');
-            },
-            cPlayers() {
-                return this.countPlayerPosition('C');
             }
         }
     }
 </script>
-
-<style lang="scss">
-
-</style>

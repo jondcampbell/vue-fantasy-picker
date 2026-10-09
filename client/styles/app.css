@@ -1,0 +1,165 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+/*
+ * Semantic color tokens. Components use these (bg-surface, text-muted, border-line...)
+ * so light/dark switching happens here instead of with dark: variants everywhere.
+ */
+:root {
+	color-scheme: light dark;
+	--canvas: #f8fafc;
+	--surface: #ffffff;
+	--surface-2: #f1f5f9;
+	--line: #e2e8f0;
+	--fg: #0f172a;
+	--muted: #64748b;
+	--accent: #059669;
+	--accent-fg: #ffffff;
+	--good: #16a34a;
+	--bad: #dc2626;
+	--warn: #d97706;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--canvas: #020617;
+		--surface: #0f172a;
+		--surface-2: #1e293b;
+		--line: #1e293b;
+		--fg: #e2e8f0;
+		--muted: #94a3b8;
+		--accent: #34d399;
+		--accent-fg: #022c22;
+		--good: #4ade80;
+		--bad: #f87171;
+		--warn: #fbbf24;
+	}
+}
+
+@theme inline {
+	--font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--color-canvas: var(--canvas);
+	--color-surface: var(--surface);
+	--color-surface-2: var(--surface-2);
+	--color-line: var(--line);
+	--color-fg: var(--fg);
+	--color-muted: var(--muted);
+	--color-accent: var(--accent);
+	--color-accent-fg: var(--accent-fg);
+	--color-good: var(--good);
+	--color-bad: var(--bad);
+	--color-warn: var(--warn);
+}
+
+@layer base {
+	body {
+		@apply bg-canvas font-sans text-fg antialiased;
+	}
+}
+
+@layer components {
+	.page-title {
+		@apply text-2xl font-semibold tracking-tight;
+	}
+	.page-subtitle {
+		@apply mt-1 text-sm text-muted;
+	}
+
+	.card {
+		@apply rounded-xl border border-line bg-surface;
+	}
+
+	.btn {
+		@apply inline-flex cursor-pointer items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition
+			focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent
+			disabled:cursor-not-allowed disabled:opacity-40;
+	}
+	.btn-primary {
+		@apply bg-accent text-accent-fg hover:brightness-110;
+	}
+	.btn-ghost {
+		@apply border border-line bg-surface hover:bg-surface-2;
+	}
+
+	.label {
+		@apply mb-1.5 block text-xs font-medium tracking-wide text-muted uppercase;
+	}
+	.help {
+		@apply mt-1 text-xs text-muted;
+	}
+	.field {
+		@apply block w-full rounded-lg border-line bg-surface text-sm text-fg shadow-none
+			focus:border-accent focus:ring-1 focus:ring-accent;
+	}
+
+	.nav-item {
+		@apply flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition hover:bg-surface-2;
+	}
+	.nav-item svg {
+		@apply text-muted;
+	}
+	.nav-item-active {
+		@apply bg-accent/10 text-accent hover:bg-accent/15;
+	}
+	.nav-item-active svg {
+		@apply text-accent;
+	}
+
+	.pill {
+		@apply shrink-0 rounded-full px-3 py-1 text-sm font-medium whitespace-nowrap text-muted transition hover:bg-surface-2 hover:text-fg;
+	}
+	.pill-active {
+		@apply bg-accent text-accent-fg hover:bg-accent hover:text-accent-fg;
+	}
+
+	.chip {
+		@apply inline-flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-medium;
+	}
+
+	/* Dense, scrollable data tables with a sticky header */
+	.table-wrap {
+		@apply max-h-[calc(100vh-15rem)] overflow-auto rounded-xl border border-line bg-surface;
+	}
+	.data-table {
+		@apply w-full border-separate border-spacing-0 text-sm tabular-nums;
+	}
+	.data-table th {
+		@apply sticky top-0 z-10 border-b border-line bg-surface-2 px-3 py-2 text-left text-xs font-semibold
+			whitespace-nowrap text-muted;
+	}
+	.data-table td {
+		@apply border-b border-line px-3 py-1.5 whitespace-nowrap;
+	}
+	.data-table tbody tr:last-child td {
+		@apply border-b-0;
+	}
+	/* Component-layer tint so the row hover below still wins */
+	.data-table td.key-col {
+		@apply bg-accent/5;
+	}
+	.data-table tbody tr:hover td {
+		@apply bg-surface-2;
+	}
+	/* Pinned columns stay visible while scrolling sideways */
+	.data-table .pin {
+		@apply sticky z-[5] bg-surface;
+	}
+	.data-table th.pin {
+		@apply z-20 bg-surface-2;
+	}
+}
+
+/* SweetAlert2 popups follow the theme */
+.swal2-popup {
+	background: var(--surface);
+	color: var(--fg);
+	border-radius: 0.75rem;
+}
+.swal2-title,
+.swal2-html-container {
+	color: var(--fg);
+}
+.swal2-styled.swal2-confirm {
+	background-color: var(--accent);
+	color: var(--accent-fg);
+}

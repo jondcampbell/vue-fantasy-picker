@@ -1,33 +1,22 @@
 <template>
-    <tr class="score-row">
-        <td>
-            <a @click="removePlayerFromWatchList" class="text-success" v-if="watched"><icon name="binoculars"></icon></a>
-            <a @click="addPlayerToWatchList" class="text-secondary" v-else><icon name="binoculars"></icon></a>
+    <tr>
+        <td class="pin left-0 w-12 min-w-12 text-right text-muted">{{ rank }}</td>
+        <td class="pin left-12 w-28 min-w-28 py-0.5">
+            <list-toggles :playerId="playerId"></list-toggles>
         </td>
-        <td>
-            <a @click="removePlayerFromMyTeam" class="text-success" v-if="onTeam"><icon name="users"></icon></a>
-            <a @click="addPlayerToMyTeam" class="text-secondary" v-else><icon name="users"></icon></a>
-        </td>
-        <td>
-            <a @click="removePlayerFromTaken" class="text-danger" v-if="taken"><icon name="exclamation"></icon></a>
-            <a @click="addPlayerToTaken" class="text-secondary" v-else><icon name="exclamation"></icon></a>
-        </td>
-        <td >
-            {{ playerName }}
-        </td>
-        <td >
-            {{ playerGames }}
-        </td>
-        <td >
-            {{ playerPosition }}
-        </td>
-        <td v-for="(score_column, index) in scoreData" v-bind:class="scoreClass(index)">{{ scoreData[index] }}</td>
+        <td class="pin left-40 font-medium">{{ playerName }}</td>
+        <td class="text-right">{{ playerGames }}</td>
+        <td class="text-muted">{{ playerPosition }}</td>
+        <td v-for="(score_column, index) in scoreData" :key="index" :class="scoreClass(index)" :title="scoreData[index]">{{ formatScore(index) }}</td>
     </tr>
 </template>
 
 <script>
+    import ListToggles from 'components/partials/ListToggles.vue';
+
     export default {
         props: [
+            'rank',
             'scoreData',
             'playerId',
             'playerName',
@@ -38,47 +27,27 @@
         ],
         methods: {
             scoreClass(column_index) {
+                if (column_index == 'aboveAverage') {
+                    return 'text-center';
+                }
+                if (column_index == 'total') {
+                    return 'text-right font-semibold';
+                }
                 if(this.scoreData[column_index] >= this.bestScores[column_index]){
-                    return 'bg-success';
+                    return 'text-right bg-good/15 font-semibold text-good';
                 }
                 if(this.scoreData[column_index] <= this.worstScores[column_index]){
-                    return 'bg-danger';
+                    return 'text-right bg-bad/10 text-bad';
                 }
+                return 'text-right';
             },
-            addPlayerToWatchList(){
-                this.$store.dispatch('addToList',{ list: 'watch_list', player_id: this.playerId });
-            },
-            removePlayerFromWatchList(){
-                this.$store.dispatch('removeFromList',{ list: 'watch_list', player_id: this.playerId });
-            },
-            addPlayerToMyTeam(){
-                this.$store.dispatch('addToList',{ list: 'my_team', player_id: this.playerId });
-            },
-            removePlayerFromMyTeam(){
-                this.$store.dispatch('removeFromList',{ list: 'my_team', player_id: this.playerId });
-            },
-            addPlayerToTaken(){
-                this.$store.dispatch('addToList',{ list: 'taken_players', player_id: this.playerId });
-            },
-            removePlayerFromTaken(){
-                this.$store.dispatch('removeFromList',{ list: 'taken_players', player_id: this.playerId });
+            formatScore(column_index) {
+                const value = this.scoreData[column_index];
+                return column_index == 'aboveAverage' ? value : Number(value).toFixed(2);
             }
         },
-        computed: {
-            watched(){
-                return this.$store.getters.isWatched(this.playerId);
-            },
-            onTeam(){
-                return this.$store.getters.isOnTeam(this.playerId);
-            },
-            taken(){
-                return this.$store.getters.isTaken(this.playerId);
-            }
+        components: {
+            ListToggles
         }
     }
 </script>
-
-<style lang="scss">
-    .score-row {
-    }
-</style>

@@ -1,11 +1,30 @@
 <template>
-  <font-awesome-icon v-if="faIcon" :icon="faIcon" :title="name" />
+  <font-awesome-icon v-if="faIcon" :icon="faIcon" class="size-[1em] shrink-0" />
   <span v-else aria-hidden="true">•</span>
 </template>
 
 <script>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faUpload, faBinoculars, faUsers, faExclamation, faCheck, faCircle } from '@fortawesome/free-solid-svg-icons';
+import {
+  faUpload, faBinoculars, faUsers, faExclamation, faCheck, faCircle,
+  faBasketball, faTrophy, faGear, faList, faMagnifyingGlass, faFileCsv, faCloudArrowUp, faChartColumn
+} from '@fortawesome/free-solid-svg-icons';
+
+const icons = {
+  upload: faUpload,
+  binoculars: faBinoculars,
+  users: faUsers,
+  exclamation: faExclamation,
+  check: faCheck,
+  basketball: faBasketball,
+  trophy: faTrophy,
+  gear: faGear,
+  list: faList,
+  search: faMagnifyingGlass,
+  csv: faFileCsv,
+  cloud: faCloudArrowUp,
+  chart: faChartColumn
+};
 
 export default {
   name: 'Icon',
@@ -15,22 +34,8 @@ export default {
   },
   computed: {
     faIcon() {
-      switch (this.name) {
-        case 'upload': return faUpload;
-        case 'binoculars': return faBinoculars;
-        case 'users': return faUsers;
-        case 'exclamation': return faExclamation;
-        case 'check': return faCheck;
-        default: return faCircle;
-      }
+      return icons[this.name] || faCircle;
     }
   }
 }
 </script>
-
-<style scoped>
-:deep(svg) {
-  width: 1em;
-  height: 1em;
-}
-</style>

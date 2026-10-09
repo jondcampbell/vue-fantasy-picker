@@ -1,42 +1,29 @@
 <template>
-    <div class="players-wrapper">
-        <h2>Players <button @click="evaluatePlayers()" class="btn btn-primary float-right">Evaluate Players</button></h2>
-        <section class="row ">
-            <div class="col-12">
-                <div class="mb-3">
-                    <player-summary :players="filteredPlayers" ></player-summary>
-                    <player-filtering ></player-filtering>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover players-table">
-                        <thead class="thead-inverse">
-                            <tr>
-                                <th>Watch</th>
-                                <th>Mine</th>
-                                <th>Taken</th>
-                                <th v-for="(column, index) in $store.state.columns">{{column}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <player-row
-                            class=""
-                            v-bind:key="player[$store.state.config.id_column]"
-                            ref="player_items"
-                            v-for="(player, index) in filteredPlayers"
-                            :player="player"
-                            :index="index"></player-row>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="space-y-5">
+        <header class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h2 class="page-title">Players</h2>
+                <p class="page-subtitle">Raw stats from your import. Evaluate to score players against the category baselines.</p>
             </div>
-        </section>
+            <button type="button" @click="evaluatePlayers()" class="btn btn-primary" :disabled="$store.state.players.length == 0">
+                <icon name="chart"></icon> Evaluate Players
+            </button>
+        </header>
 
+        <div class="card space-y-4 p-4">
+            <player-summary :players="filteredPlayers"></player-summary>
+            <player-filtering></player-filtering>
+        </div>
+
+        <player-table :players="filteredPlayers">
+            <template #empty v-if="$store.state.players.length == 0">No players yet. Import a stats CSV to get started.</template>
+        </player-table>
     </div>
 </template>
 
 <script>
-    import PlayerRow from 'components/partials/PlayerRow.vue';
     import Swal from 'sweetalert2';
+    import PlayerTable from 'components/partials/PlayerTable.vue';
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
     import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
 
@@ -53,24 +40,9 @@
             }
         },
         components: {
-            PlayerRow,
+            PlayerTable,
             PlayerSummary,
             PlayerFiltering
         }
     }
 </script>
-
-<style lang="scss">
-    .players-wrapper {
-        .players-table{
-            th{
-                &.name{
-
-                 }
-            }
-            td{
-
-            }
-        }
-    }
-</style>

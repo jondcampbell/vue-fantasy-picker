@@ -1,42 +1,24 @@
 <template>
-    <div class="my-team-wrapper">
-        <h2>My Team</h2>
-        <section class="row ">
-            <div class="col-12">
-                <div class="mb-3">
-                    <player-summary :players="filteredPlayers" ></player-summary>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover players-table">
-                        <thead class="thead-inverse">
-                            <tr>
-                                <th>Watch</th>
-                                <th>Mine</th>
-                                <th>Taken</th>
-                                <th v-for="(column, index) in $store.state.columns">{{column}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <player-row
-                            class=""
-                            v-bind:key="player[$store.state.config.id_column]"
-                            ref="player_items"
-                            v-for="(player, index) in filteredPlayers"
-                            :player="player"
-                            :index="index"></player-row>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+    <div class="space-y-5">
+        <header>
+            <h2 class="page-title">My Team</h2>
+            <p class="page-subtitle">Your rostered players.</p>
+        </header>
 
+        <div class="card p-4" v-if="filteredPlayers.length > 0">
+            <player-summary :players="filteredPlayers"></player-summary>
+        </div>
+
+        <player-table :players="filteredPlayers">
+            <template #empty v-if="$store.state.scores.length == 0">Evaluate players first, then use the <icon name="users" class="mx-0.5 inline"></icon> button to build your team.</template>
+            <template #empty v-else>No players on your team yet. Use the <icon name="users" class="mx-0.5 inline"></icon> button on any player to add them.</template>
+        </player-table>
     </div>
 </template>
 
 <script>
-    import PlayerRow from 'components/partials/PlayerRow.vue';
+    import PlayerTable from 'components/partials/PlayerTable.vue';
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
-
 
     export default {
         methods: {},
@@ -46,23 +28,8 @@
             }
         },
         components: {
-            PlayerRow,
+            PlayerTable,
             PlayerSummary
         }
     }
 </script>
-
-<style lang="scss">
-    .my-team-wrapper {
-        .players-table{
-            th{
-                &.name{
-
-                 }
-            }
-            td{
-
-            }
-        }
-    }
-</style>
