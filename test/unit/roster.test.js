@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { assignRoster, parseSlots, canFill, openSlots, DEFAULT_SLOTS } from '../../client/store/roster';
+import { assignRoster, parseSlots, canFill, openSlots, openSlotChecker, DEFAULT_SLOTS } from '../../client/store/roster';
 
 const p = (id, positions, score, ir = false) => ({ id, positions, score, ir });
 const lineup = (result) => result.assignments.map(({ slot, player }) => `${slot}:${player ? player.id : '-'}`);
@@ -77,5 +77,31 @@ describe('assignRoster', () => {
 			'Bench:11', 'Bench:-', 'Bench:-', 'Bench:-', 'IR:-'
 		]);
 		expect(openSlots(result.assignments)).toEqual([{ slot: 'Bench', count: 3 }]);
+	});
+});
+
+describe('openSlotChecker', () => {
+	it('fits players who can fill an open starter slot directly', () => {
+		const fits = openSlotChecker([p(1, ['PG'], 1)], ['PG', 'C', 'Bench']);
+		expect(fits(['C'])).toBe(true);
+		expect(fits(['PF', 'C'])).toBe(true);
+		expect(fits(['PG'])).toBe(false);
+	});
+
+	it('counts reshuffles: a PF fits when the PF/C starter can slide to the open C', () => {
+		const fits = openSlotChecker([p(1, ['PF', 'C'], 1)], ['PF', 'C']);
+		expect(fits(['PF'])).toBe(true);
+		expect(fits(['PG'])).toBe(false);
+	});
+
+	it('ignores Bench and IR slots, and fits nobody when the starting lineup is full', () => {
+		const full = openSlotChecker([p(1, ['PG'], 1), p(2, ['C'], 1)], ['PG', 'C', 'Bench', 'IR']);
+		expect(full(['SF'])).toBe(false);
+		expect(full(['PG', 'SG', 'SF', 'PF', 'C'])).toBe(false);
+	});
+
+	it('leaves IR players out of the lineup', () => {
+		const fits = openSlotChecker([p(1, ['C'], 1, true)], ['C', 'IR']);
+		expect(fits(['C'])).toBe(true);
 	});
 });

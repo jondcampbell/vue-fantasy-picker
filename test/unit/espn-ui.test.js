@@ -90,4 +90,38 @@ describe('ESPN data in the UI', () => {
 		expect(chip('PG').attributes('disabled')).toBeUndefined();
 		expect(store.rosterPlayers[0].positions).toEqual(['SF', 'PF']);
 	});
+
+	it('filters and shows positions by ESPN eligibility, and finds players for open slots', async () => {
+		store.useDataset('espn-actual-2026');
+		const eligible = key => store.espnInfo.get(key)?.eligible || [];
+		// Someone listed at SF that ESPN also lets play PF (Ronald Holland II)
+		const dual = store.scores.find(score => score.playerPosition !== 'PF' && eligible(score.playerKey).includes('PF'));
+		expect(dual).toBeDefined();
+
+		store.changeActivePosition('PF');
+		expect(store.filteredScores.some(score => score.playerKey === dual.playerKey)).toBe(true);
+		expect(store.filteredScores.every(score => store.eligiblePositions(score.playerKey).includes('PF'))).toBe(true);
+		store.changeActivePosition('all');
+
+		const page = mountWith(Scores);
+		const row = page.findAll('tbody tr').find(tr => tr.text().includes(dual.playerName));
+		expect(row.findAll('td')[4].text()).toBe('SF, PF');
+
+		// LeBron (SF, PF) is on My Team: with SF and C slots, only C is open
+		store.changeConfigSetting({ config_key: 'roster_slots', config_value: ['SF', 'C', 'Bench'] });
+		store.changeFitsOpenSlots(true);
+		expect(store.openStarterSlots).toEqual([{ slot: 'C', count: 1 }]);
+		expect(store.filteredScores.map(score => score.playerName).sort()).toEqual(['Nikola Jokic', 'Victor Wembanyama']);
+		expect(store.filteredPlayers.length).toBeGreaterThan(0);
+		expect(store.filteredPlayers.every(row => store.eligiblePositions(store.rowKeys.get(row)).includes('C') && store.rowKeys.get(row) !== 'jamesle01')).toBe(true);
+		await page.vm.$nextTick();
+		expect(page.text()).toContain('Open:');
+
+		// A full starting lineup fits nobody
+		store.changeConfigSetting({ config_key: 'roster_slots', config_value: ['SF', 'Bench'] });
+		expect(store.filteredScores).toEqual([]);
+		await page.vm.$nextTick();
+		expect(page.text()).toContain('Your starting lineup is full.');
+		store.changeFitsOpenSlots(false);
+	});
 });

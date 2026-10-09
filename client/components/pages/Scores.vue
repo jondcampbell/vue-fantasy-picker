@@ -57,7 +57,7 @@
                         :scoreData="scoreItem.scoreData"
                         :playerKey="scoreItem.playerKey"
                         :playerName="scoreItem.playerName"
-                        :playerPosition="scoreItem.playerPosition"
+                        :playerPosition="positionLabel(scoreItem)"
                         :playerGames="scoreItem.playerGames"
                         :proj="showProj ? ($store.projection_totals[scoreItem.playerKey] ?? null) : undefined"
                         :espn="espnFor(scoreItem.playerKey)"
@@ -88,6 +88,10 @@
         methods: {
             isActive(key) {
                 return this.$store.active_category == key;
+            },
+            // Every position the player can fill (ESPN eligibility included), e.g. "PG, SG"
+            positionLabel(scoreItem) {
+                return this.$store.eligiblePositions(scoreItem.playerKey).join(', ') || scoreItem.playerPosition;
             },
             espnFor(key) {
                 return this.$store.espnInfo.get(key) || null;

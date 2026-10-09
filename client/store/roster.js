@@ -73,6 +73,14 @@ const maxMatching = function(players, slotEntries) {
 	return slotPlayer;
 };
 
+// Starter slot entries [{ slot, index }], most specific first
+const starterSlotEntries = function(slots) {
+	return slots
+		.map((slot, index) => ({ slot, index }))
+		.filter(({ slot }) => isStarterSlot(slot))
+		.sort((a, b) => slotPriority(a.slot) - slotPriority(b.slot));
+};
+
 /**
  * players: [{ id, positions: ['PG', ...], score, ir }]
  * Returns { assignments: [{ slot, player|null }] in slot order, overflow: [player] }.
@@ -86,10 +94,7 @@ export const assignRoster = function(players, slots) {
 	const active = players.filter(player => !player.ir).sort(byScore);
 	const injured = players.filter(player => player.ir).sort(byScore);
 
-	const starterSlots = slots
-		.map((slot, index) => ({ slot, index }))
-		.filter(({ slot }) => isStarterSlot(slot))
-		.sort((a, b) => slotPriority(a.slot) - slotPriority(b.slot));
+	const starterSlots = starterSlotEntries(slots);
 
 	const chosen = new Set(maxMatching(active, starterSlots).values());
 	const starters = active.filter(player => chosen.has(player));
@@ -135,4 +140,27 @@ export const openSlots = function(assignments) {
 		}
 	});
 	return [...counts].map(([slot, count]) => ({ slot, count }));
+};
+
+/**
+ * Returns positions => true when adding a player with those positions would start one more player.
+ * Uses the same matching as the lineup, so current starters may shift: with C open and a PF/C playing PF,
+ * a PF fits (the PF/C moves to C). Bench and IR don't count; a full starting lineup fits nobody.
+ * Results are cached per position combination, so checking every player is cheap.
+ */
+export const openSlotChecker = function(players, slots) {
+	const active = players.filter(player => !player.ir);
+	const starterSlots = starterSlotEntries(slots);
+	const started = maxMatching(active, starterSlots).size;
+	const cache = new Map();
+	return function(positions) {
+		if (started >= starterSlots.length) {
+			return false;
+		}
+		const combo = [...positions].sort().join('/');
+		if (!cache.has(combo)) {
+			cache.set(combo, maxMatching([...active, { positions }], starterSlots).size > started);
+		}
+		return cache.get(combo);
+	};
 };

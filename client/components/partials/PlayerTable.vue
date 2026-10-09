@@ -42,7 +42,7 @@
                 return this.$store.columns.map((column, column_index) => ({
                     'pin left-28 font-medium': column_index == config.name_column,
                     'key-col font-medium': overall.includes(column_index),
-                    'text-muted': column_index == config.pos_column
+                    'whitespace-nowrap text-muted': column_index == config.pos_column
                 }));
             }
         },

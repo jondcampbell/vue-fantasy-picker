@@ -24,6 +24,18 @@
                 <option value="taken">Other Teams</option>
             </select>
         </label>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:col-span-3">
+            <label class="inline-flex cursor-pointer items-center gap-2 text-sm">
+                <input type="checkbox" class="rounded border-line text-accent" :checked="$store.fits_open_slots" @change="$store.changeFitsOpenSlots($event.target.checked)"/>
+                Fits my open slots
+            </label>
+            <span class="text-xs text-muted" v-if="$store.my_team.length === 0">Add players to My Team to see which slots are open.</span>
+            <span class="text-xs text-muted" v-else-if="$store.openStarterSlots.length === 0">Your starting lineup is full.</span>
+            <span class="flex flex-wrap items-center gap-1 text-xs text-muted" v-else>
+                Open:
+                <span class="chip text-warn" v-for="open in $store.openStarterSlots" :key="open.slot">{{ open.slot }}<template v-if="open.count > 1"> ×{{ open.count }}</template></span>
+            </span>
+        </div>
     </div>
 </template>
 

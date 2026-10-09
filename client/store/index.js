@@ -2,7 +2,7 @@ import { markRaw, toRaw } from 'vue'
 import { createPinia, defineStore } from 'pinia'
 import { meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns, overallColumns } from './scoring'
 import { persist } from './persist'
-import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots } from './roster'
+import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots, openSlotChecker, isStarterSlot } from './roster'
 import { detectKeyColumn, detectEspnColumn, detectTeamColumn, computeKeys, reconcileKeys, isNameKey, ESPN_PREFIX } from './identity'
 import { normalizeRows } from './normalize'
 import { linkPlayers } from './registry'
@@ -75,6 +75,8 @@ const defaultState = () => ({
 	active_category: 'total',
 	active_position: 'all',
 	active_filter: 'none',
+	// Rankings/Players: only players who would start in an open slot on My Team
+	fits_open_slots: false,
 	search_text: '',
 	// Lists hold player keys (see client/store/identity.js) so they survive re-importing updated stats
 	my_team: [],
@@ -226,6 +228,22 @@ export const usePickerStore = defineStore('picker', {
 			});
 		},
 
+		// Positions a player can fill: the stats file's position, ESPN's eligibility and extra positions you added
+		eligiblePositions() {
+			const posColumn = this.config.pos_column;
+			const keyRows = this.keyRows;
+			const espnInfo = this.espnInfo;
+			const overrides = this.position_overrides;
+			return (key) => {
+				const row = keyRows.get(key);
+				const espn = espnInfo.get(key);
+				const listed = String((row ? row[posColumn] : espn?.pos) ?? '').split(/[^A-Z]+/);
+				const espnEligible = espn?.eligible || [];
+				const extra = overrides[key] || [];
+				return POSITIONS.filter(p => listed.includes(p) || espnEligible.includes(p) || extra.includes(p));
+			};
+		},
+
 		// My team with lineup eligibility and overall score, for roster slot assignment
 		rosterPlayers() {
 			const config = this.config;
@@ -235,15 +253,12 @@ export const usePickerStore = defineStore('picker', {
 			return this.my_team.filter(key => this.keyRows.has(key) || this.espnInfo.has(key)).map(key => {
 				const player = this.keyRows.get(key);
 				const espn = this.espnInfo.get(key);
-				const position = player ? player[config.pos_column] : espn.pos;
-				const extra = this.position_overrides[key] || [];
-				const espnEligible = espn?.eligible || [];
 				return {
 					key: key,
 					name: player ? player[config.name_column] : espn.name,
-					position: position,
-					espnEligible: espnEligible,
-					positions: POSITIONS.filter(p => p === position || espnEligible.includes(p) || extra.includes(p)),
+					position: player ? player[config.pos_column] : espn.pos,
+					espnEligible: espn?.eligible || [],
+					positions: this.eligiblePositions(key),
 					score: scoreByKey.get(key),
 					ir: ir.has(key)
 				};
@@ -254,6 +269,15 @@ export const usePickerStore = defineStore('picker', {
 		},
 		openRosterSlots() {
 			return openSlots(this.roster.assignments);
+		},
+		openStarterSlots() {
+			return this.openRosterSlots.filter(({ slot }) => isStarterSlot(slot));
+		},
+		// key => true when that player (not already on My Team) would start in an open slot
+		fitsOpenSlot() {
+			const fits = openSlotChecker(this.rosterPlayers, this.config.roster_slots);
+			const mine = this.myTeamSet;
+			return (key) => !mine.has(key) && fits(this.eligiblePositions(key));
 		},
 
 		myPlayers() {
@@ -270,14 +294,16 @@ export const usePickerStore = defineStore('picker', {
 		filteredPlayers() {
 			const state = this;
 			let players = state.players;
-			const position_column = state.config.pos_column;
 			const name_column = state.config.name_column;
 			const rowKeys = this.rowKeys;
 
 			if (state.active_position !== 'all') {
-				players = players.filter(player => player[position_column] == state.active_position);
+				players = players.filter(player => this.eligiblePositions(rowKeys.get(player)).includes(state.active_position));
 			}
 			players = filterByAvailability(state, players, player => rowKeys.get(player));
+			if (state.fits_open_slots) {
+				players = players.filter(player => this.fitsOpenSlot(rowKeys.get(player)));
+			}
 			if (state.search_text !== '') {
 				const needle = state.search_text.toLowerCase();
 				players = players.filter(player => player[name_column].toLowerCase().includes(needle));
@@ -286,17 +312,20 @@ export const usePickerStore = defineStore('picker', {
 		},
 
 		// Filtered scores without sorting (used by best/worst and summaries)
-		filteredScores: (state) => {
-			let scores = state.scores;
+		filteredScores() {
+			let scores = this.scores;
 
-			if (state.active_position !== 'all') {
-				scores = scores.filter(p => p.playerPosition == state.active_position);
+			if (this.active_position !== 'all') {
+				scores = scores.filter(p => this.eligiblePositions(p.playerKey).includes(this.active_position));
 			}
-			if (state.search_text !== '') {
-				const needle = state.search_text.toLowerCase();
+			if (this.search_text !== '') {
+				const needle = this.search_text.toLowerCase();
 				scores = scores.filter(p => p.playerName.toLowerCase().includes(needle));
 			}
-			return filterByAvailability(state, scores, p => p.playerKey);
+			if (this.fits_open_slots) {
+				scores = scores.filter(p => this.fitsOpenSlot(p.playerKey));
+			}
+			return filterByAvailability(this, scores, p => p.playerKey);
 		},
 		sortedFilteredPlayerScores() {
 			const category = this.active_category;
@@ -547,6 +576,9 @@ export const usePickerStore = defineStore('picker', {
 		},
 		changeActiveFilter(filter) {
 			this.active_filter = filter;
+		},
+		changeFitsOpenSlots(value) {
+			this.fits_open_slots = value;
 		},
 		changeSearchText(search_text) {
 			this.search_text = search_text;

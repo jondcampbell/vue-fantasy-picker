@@ -13,9 +13,9 @@ Runs entirely in the browser on your machine. There's no backend, and everything
 - **Configurable baseline**: mean or median, using all qualifying players or only the top 100/150/200, with minimum games and minutes per game.
 - **Rankings**: rank by the overall score or any category, either with the "Rank by" pills or by clicking a column header. Best and worst values in each column are highlighted.
 - **Ranking-only columns** (BLK and TOV by default) can be ranked without counting toward the overall score.
-- **Lists**: mark players as on your team, taken by another team, or watched, then filter any table by availability, position or name. Lists carry over when you re-import updated stats: players are matched by their Basketball-Reference ID, or by name if a file has no IDs. Anyone who can't be matched, or whose name is shared by several players, is flagged for you to resolve.
+- **Lists**: mark players as on your team, taken by another team, or watched, then filter any table by availability, position or name. Positions include ESPN's eligibility, so a PG/SG shows up under both. Lists carry over when you re-import updated stats: players are matched by their Basketball-Reference ID, or by name if a file has no IDs. Anyone who can't be matched, or whose name is shared by several players, is flagged for you to resolve.
 - **ESPN league sync** for a private league: your team, every other team's players, IR, lineup slots and scoring categories in one click. Login cookies stay in a local `.env.local` file.
-- **Roster slots** (ESPN layout by default: PG, SG, SF, PF, C, G, F, UTIL ×3, Bench ×4, IR). My Team fills the lineup automatically, best scores first. You can add extra position eligibility per player, move players to IR, and see open slots at a glance.
+- **Roster slots** (ESPN layout by default: PG, SG, SF, PF, C, G, F, UTIL ×3, Bench ×4, IR). My Team fills the lineup automatically, best scores first. You can add extra position eligibility per player, move players to IR, and see open slots at a glance. On Rankings and Players, **Fits my open slots** shows only players who would start in one of them, counting lineup reshuffles (with C open and your PF/C playing PF, a PF fits).
 - **Column mapping** in Configure: choose the name, position, games, minutes, scoring, lower-is-better, ranking-only and season-total columns.
 - **Light/dark theme** that follows your system, or can be set by hand.
 
@@ -64,7 +64,6 @@ Vue 3 (Options API) · Pinia · Vite · Tailwind CSS v4 · Vitest + happy-dom ·
 
 ## Ideas
 
-- Filter rankings to players who fit your open roster slots
 - Mark taken players by pasting rosters from your league site
 - Compare your team's category strengths against the league or another team
 - Punt-category presets
