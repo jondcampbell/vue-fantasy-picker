@@ -1,0 +1,93 @@
+// @vitest-environment happy-dom
+import { describe, it, expect, beforeAll } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createPinia } from 'pinia';
+import { mount, flushPromises } from '@vue/test-utils';
+import { usePickerStore } from '../../client/store';
+import { espnPlayersUrl } from '../../client/sources/espn';
+import Icon from '../../client/components/Icon.vue';
+import DataPage from '../../client/components/pages/ImportData.vue';
+import Scores from '../../client/components/pages/Scores.vue';
+import RosterCard from '../../client/components/partials/RosterCard.vue';
+
+const fixture = name => JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'test/fixtures', name), 'utf8'));
+const espnJson = fixture('espn-players-2027.json');
+const nbaapi2026 = fixture('nbaapi-playertotals-2026.json');
+const NOW = new Date(2026, 9, 9);
+const fakeFetch = async (url) => {
+	if (url === espnPlayersUrl(2027)) {
+		return { ok: true, json: async () => espnJson };
+	}
+	const season = new URL(url).searchParams.get('season');
+	return { ok: true, json: async () => ({ data: season === '2026' ? nbaapi2026 : [], pagination: { pages: 1 } }) };
+};
+
+describe('ESPN data in the UI', () => {
+	const store = usePickerStore(createPinia());
+	const mountWith = component => mount(component, { global: { components: { icon: Icon }, config: { globalProperties: { $store: store } } } });
+
+	beforeAll(async () => {
+		await store.updateStats({ fetchImpl: fakeFetch, now: NOW });
+		store.changeConfigSetting({ config_key: 'min_games_played', config_value: 1 });
+	});
+
+	it('lists datasets on the Data page and links players by hand', async () => {
+		const page = mountWith(DataPage);
+		expect(page.text()).toContain('2026-27 ESPN Projection');
+		expect(page.text()).toContain('2025-26 Actual (Basketball-Reference)');
+		expect(page.text()).toContain('Link players · 1');
+		expect(page.text()).toContain('Ronald Holland II');
+
+		await page.findAll('button').find(b => b.text().startsWith('Ron Holland')).trigger('click');
+		expect(store.espn_links[store.espnInfo.get('hollaro01').espnId]).toBe('hollaro01');
+		expect(page.text()).not.toContain('Link players');
+
+		await page.findAll('button').find(b => b.text() === 'Use').trigger('click');
+		await flushPromises();
+		expect(page.findAll('.chip').filter(c => c.text() === 'Active').length).toBe(1);
+	});
+
+	it('shows Proj and ESPN rank columns and switches datasets', async () => {
+		store.useDataset('espn-actual-2026');
+		const page = mountWith(Scores);
+		const headers = page.findAll('thead th').map(th => th.text());
+		expect(headers).toContain('Proj');
+		expect(headers).toContain('ESPN rk');
+
+		const jokicRow = page.findAll('tbody tr').find(tr => tr.text().includes('Nikola Jokic'));
+		const cells = jokicRow.findAll('td').map(td => td.text());
+		expect(cells[cells.length - 1]).toBe('1');
+		expect(cells[cells.length - 2]).toBe(store.projection_totals.jokicni01.toFixed(2));
+
+		await page.findAll('button').find(b => b.text() === '2025-26 Actual (Basketball-Reference)').trigger('click');
+		expect(store.active_dataset).toBe('bbref-actual-2026');
+		expect(page.findAll('tbody tr').some(tr => tr.text().includes('Nikola Jokić'))).toBe(true);
+	});
+
+	it('shows injury badges from ESPN', () => {
+		store.useDataset('espn-actual-2026');
+		const idOf = key => store.espnInfo.get(key).espnId;
+		store.espn_players = {
+			...store.espn_players,
+			[idOf('jokicni01')]: { ...store.espn_players[idOf('jokicni01')], injury: 'OUT' },
+			[idOf('jamesle01')]: { ...store.espn_players[idOf('jamesle01')], injury: 'DAY_TO_DAY' }
+		};
+		const page = mountWith(Scores);
+		const row = name => page.findAll('tbody tr').find(tr => tr.text().includes(name));
+		expect(row('Nikola Jokic').find('td.pin.left-40 span').text()).toBe('OUT');
+		expect(row('LeBron James').find('td.pin.left-40 span').text()).toBe('DTD');
+		expect(row('Russell Westbrook').find('td.pin.left-40 span').exists()).toBe(false);
+	});
+
+	it('uses ESPN eligibility on the roster as fixed positions', () => {
+		store.addToList({ list: 'my_team', key: 'jamesle01' });
+		const card = mountWith(RosterCard);
+		const row = card.findAll('tbody tr').find(tr => tr.text().includes('LeBron'));
+		const chip = position => row.findAll('button').find(b => b.text() === position);
+		expect(chip('PF').attributes('disabled')).toBeDefined();
+		expect(chip('PF').attributes('title')).toBe('Eligible on ESPN');
+		expect(chip('PG').attributes('disabled')).toBeUndefined();
+		expect(store.rosterPlayers[0].positions).toEqual(['SF', 'PF']);
+	});
+});

@@ -23,6 +23,7 @@ describe('nameKey', () => {
 		expect(nameKey('Jaren Jackson Jr.')).toBe('jaren jackson');
 		expect(nameKey('John Lucas III\\lucasjo02')).toBe('john lucas');
 		expect(nameKey("De'Aaron  Fox")).toBe('deaaron fox');
+		expect(nameKey('Egor Dёmin')).toBe('egor demin');
 	});
 });
 

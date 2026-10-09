@@ -16,7 +16,7 @@
                         <th class="w-16">Slot</th>
                         <th>Player</th>
                         <th>Pos</th>
-                        <th title="CSV position is fixed; click others to mark extra positions your league allows">Eligible</th>
+                        <th title="Positions from the stats and ESPN are fixed; click others to mark extra positions your league allows">Eligible</th>
                         <th class="text-center">IR</th>
                         <th class="text-right">Score</th>
                     </tr>
@@ -32,9 +32,9 @@
                                     <button type="button" v-for="position in positions" :key="position"
                                         class="cursor-pointer rounded-md px-1.5 py-0.5 text-xs font-medium transition disabled:cursor-default"
                                         :class="positionClass(row.player, position)"
-                                        :disabled="position == row.player.position"
+                                        :disabled="isFixed(row.player, position)"
                                         :aria-pressed="row.player.positions.includes(position)"
-                                        :title="position == row.player.position ? 'Position from the CSV' : `Eligible at ${position} in my league`"
+                                        :title="positionTitle(row.player, position)"
                                         @click="$store.togglePositionOverride({ key: row.player.key, position: position })">{{ position }}</button>
                                 </div>
                             </td>
@@ -70,8 +70,21 @@
                 }
                 return isStarterSlot(row.slot) ? 'text-accent' : 'text-muted';
             },
-            positionClass(player, position) {
+            // The stats position and ESPN's eligibility are fixed; other positions are your own overrides
+            isFixed(player, position) {
+                return position == player.position || (player.espnEligible || []).includes(position);
+            },
+            positionTitle(player, position) {
                 if (position == player.position) {
+                    return 'Position from the stats';
+                }
+                if ((player.espnEligible || []).includes(position)) {
+                    return 'Eligible on ESPN';
+                }
+                return `Eligible at ${position} in my league`;
+            },
+            positionClass(player, position) {
+                if (this.isFixed(player, position)) {
                     return 'bg-accent text-accent-fg';
                 }
                 return player.positions.includes(position)

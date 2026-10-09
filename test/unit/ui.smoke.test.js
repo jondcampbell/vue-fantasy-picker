@@ -42,7 +42,9 @@ describe('UI smoke test', () => {
 
 	it('renders the import screen', async () => {
 		await showScreen(1);
-		expect(wrapper.text()).toContain('players currently loaded');
+		expect(wrapper.text()).toContain('Imported CSV');
+		expect(wrapper.text()).toContain(`${store.datasets.csv.rows.length} players`);
+		expect(wrapper.text()).toContain('Active');
 	});
 
 	it('renders the players table', async () => {

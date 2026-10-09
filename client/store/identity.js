@@ -1,6 +1,8 @@
 // Stable player identity across imports. Lists (my team, taken, watch, overrides, IR) store player keys:
 // - With an ID column (Basketball-Reference's "Player-additional", e.g. "jokicni01") the key is that ID.
-// - Without one, the key is "n:" + the normalized name; namesakes in the same file get "#<team>" appended.
+// - ESPN rows (an "ESPN ID" column, no Basketball-Reference ID) use the linked Basketball-Reference ID from
+//   the registry (client/store/registry.js), or "espn:<id>" until they are linked.
+// - Without either, the key is "n:" + the normalized name; namesakes in the same file get "#<team>" appended.
 // Kept store-free so it can be unit tested.
 
 const ID_HEADERS = ['player-additional', 'player id', 'player_id', 'playerid'];
@@ -10,18 +12,29 @@ export const detectKeyColumn = function(columns) {
 	return index >= 0 ? index : null;
 };
 
+export const ESPN_PREFIX = 'espn:';
+
+export const detectEspnColumn = function(columns) {
+	const index = columns.findIndex(column => String(column).trim().toLowerCase() === 'espn id');
+	return index >= 0 ? index : null;
+};
+
 // Basketball-Reference team header ("Team", older exports "Tm"), used to tell namesakes apart
 export const detectTeamColumn = function(columns) {
 	const index = columns.findIndex(column => ['team', 'tm'].includes(String(column).trim().toLowerCase()));
 	return index >= 0 ? index : null;
 };
 
+// Cyrillic letters that look Latin (Basketball-Reference writes "Egor Dёmin" with a Cyrillic ё)
+const CYRILLIC_LOOKALIKES = { 'а': 'a', 'в': 'b', 'е': 'e', 'к': 'k', 'м': 'm', 'н': 'h', 'о': 'o', 'р': 'p', 'с': 'c', 'т': 't', 'у': 'y', 'х': 'x', 'і': 'i' };
+
 // "Nikola Jokić" -> "nikola jokic", "Jaren Jackson Jr." -> "jaren jackson", "A\\abc01" -> "a"
 export const nameKey = function(name) {
 	return String(name || '')
 		.split('\\')[0]
-		.normalize('NFKD').replace(/[̀-ͯ]/g, '')
+		.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
 		.toLowerCase()
+		.replace(/[авекмнорстухі]/g, letter => CYRILLIC_LOOKALIKES[letter])
 		.replace(/[.'’]/g, '')
 		.replace(/\s+/g, ' ')
 		.trim()
@@ -41,17 +54,23 @@ export const dedupeKey = function(row, config) {
 	if (config.key_column != null && idKey(row, config.key_column) !== '') {
 		return 'id:' + idKey(row, config.key_column);
 	}
+	if (config.espn_column != null && idKey(row, config.espn_column) !== '') {
+		return ESPN_PREFIX + idKey(row, config.espn_column);
+	}
 	return 'name:' + nameKey(row[config.name_column]) + '|' + row[config.id_column];
 };
 
-// Map of row -> key for a whole (already de-duplicated) dataset
-export const computeKeys = function(rows, columns, config) {
+// Map of row -> key for a whole (already de-duplicated) dataset. espnLinks: { [espnId]: bbrefId }
+export const computeKeys = function(rows, columns, config, espnLinks = {}) {
 	const keys = new Map();
 	const nameRows = [];
 
 	rows.forEach(row => {
 		if (config.key_column != null && idKey(row, config.key_column) !== '') {
 			keys.set(row, idKey(row, config.key_column));
+		} else if (config.espn_column != null && idKey(row, config.espn_column) !== '') {
+			const espnId = idKey(row, config.espn_column);
+			keys.set(row, espnLinks[espnId] || ESPN_PREFIX + espnId);
 		} else {
 			nameRows.push(row);
 		}
@@ -101,7 +120,7 @@ export const reconcileKeys = function(oldKeys, keyRows, names, config) {
 			result.set(oldKey, { status: 'found', key: oldKey });
 			return;
 		}
-		if (!isNameKey(oldKey) && config.key_column != null) {
+		if (!isNameKey(oldKey) && (config.key_column != null || config.espn_column != null)) {
 			result.set(oldKey, { status: 'missing' });
 			return;
 		}

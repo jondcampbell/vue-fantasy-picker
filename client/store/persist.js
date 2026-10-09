@@ -48,6 +48,15 @@ export const restoreState = function(defaults, saved) {
 		migrateListsToKeys(state);
 	}
 
+	// Saved before datasets: keep the loaded players as the "Imported CSV" dataset. Those rows were
+	// already converted to per-game, so the dataset is flagged to skip that step when re-loaded.
+	if (!('datasets' in saved) && (state.players || []).length > 0) {
+		state.datasets = {
+			csv: { id: 'csv', label: 'Imported CSV', kind: 'actual', season: null, source: 'CSV', fetchedAt: null, columns: state.columns, rows: state.players, normalized: true }
+		};
+		state.active_dataset = 'csv';
+	}
+
 	return state;
 };
 

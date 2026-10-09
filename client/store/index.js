@@ -1,9 +1,14 @@
 import { markRaw, toRaw } from 'vue'
 import { createPinia, defineStore } from 'pinia'
-import { roundFloat, meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns } from './scoring'
+import { meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns } from './scoring'
 import { persist } from './persist'
 import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots } from './roster'
-import { detectKeyColumn, detectTeamColumn, dedupeKey, computeKeys, reconcileKeys } from './identity'
+import { detectKeyColumn, detectEspnColumn, detectTeamColumn, computeKeys, reconcileKeys, isNameKey, ESPN_PREFIX } from './identity'
+import { normalizeRows } from './normalize'
+import { linkPlayers } from './registry'
+import { API_COLUMNS, currentSeason, seasonLabel } from '../sources/layout'
+import { fetchEspnPlayers, parseEspnPlayers, espnDatasets } from '../sources/espn'
+import { fetchNbaapiSeason, parseNbaapiRows, nbaapiDataset } from '../sources/nbaapi'
 
 const defaultState = () => ({
 	config: {
@@ -18,6 +23,8 @@ const defaultState = () => ({
 		id_column:0,
 		// Stable player ID column (Basketball-Reference "Player-additional"), detected on import; null = match by name
 		key_column: null,
+		// ESPN player ID column (API datasets), detected on load; null when absent
+		espn_column: null,
 		name_column:1,
 		negative_columns: [
 			27
@@ -77,17 +84,48 @@ const defaultState = () => ({
 	// my team players parked in IR slots
 	ir_players: [],
 	// player key -> display name, so list entries missing from new data can still be shown
-	list_names: {}
+	list_names: {},
+
+	// Stat sources (see client/sources): { [id]: { id, label, kind, season, source, fetchedAt, columns, rows } }
+	// rows are raw season totals; the active dataset is normalized into players/columns
+	datasets: {},
+	active_dataset: null,
+	// ESPN player ID -> Basketball-Reference ID, so both sources map to the same player
+	espn_links: {},
+	// ESPN players we couldn't link automatically, with suggested matches (see registry.js)
+	unlinked: [],
+	// ESPN player ID -> { name, team, pos, eligible, injury, espnRank }
+	espn_players: {},
+	// player key -> overall score computed from ESPN's projected stats (the Rankings "Proj" column)
+	projection_totals: {},
+	stats_updated_at: null
 });
 
 const PLAYER_LISTS = ['my_team', 'taken_players', 'watch_list'];
 export const LIST_LABELS = { my_team: 'My Team', taken_players: 'Taken', watch_list: 'Watch List' };
 
-const toNumber = function(value) {
-	if (value === '' || value === null || typeof value === 'undefined') return 0;
-	const n = Number(value);
-	return isNaN(n) ? 0 : n;
+// Baselines and scores for a set of normalized rows
+const scoreRows = function(players, config, rowKeys) {
+	const averages = {};
+	scoredColumns(config).forEach(column => {
+		averages[column] = categoryAverage(players, column, config);
+	});
+	const scores = players.filter(player => meetsMinimums(player, config)).map(player => {
+		const scoreData = playerRanking(player, config, averages);
+		scoreData.aboveAverage = countAboveAverage(scoreData, config.key_columns);
+		return {
+			playerKey: rowKeys.get(player),
+			scoreData: scoreData,
+			playerName: player[config.name_column],
+			playerPosition: player[config.pos_column],
+			playerGames: player[config.games_column]
+		};
+	});
+	return { averages, scores };
 };
+
+// Column settings for a dataset's own columns (ID column positions can differ between sources)
+const configFor = (config, columns) => ({ ...config, key_column: detectKeyColumn(columns), espn_column: detectEspnColumn(columns) });
 
 // Look up full player rows for a list of player keys, skipping keys not in the current data
 const playersForKeys = function(keyRows, keys) {
@@ -112,7 +150,7 @@ export const usePickerStore = defineStore('picker', {
 		},
 
 		// Player identity: row -> key and key -> row for the current data
-		rowKeys: (state) => computeKeys(state.players, state.columns, state.config),
+		rowKeys: (state) => computeKeys(state.players, state.columns, state.config, state.espn_links),
 		keyRows() {
 			const keyRows = new Map();
 			this.rowKeys.forEach((key, row) => keyRows.set(key, row));
@@ -131,6 +169,27 @@ export const usePickerStore = defineStore('picker', {
 		},
 		isTaken() {
 			return (key) => this.takenSet.has(key);
+		},
+
+		// ESPN details by player key (eligibility, injury, ESPN rank)
+		espnInfo() {
+			const info = new Map();
+			Object.entries(this.espn_players).forEach(([espnId, player]) => {
+				info.set(this.espn_links[espnId] || ESPN_PREFIX + espnId, { espnId, ...player });
+			});
+			return info;
+		},
+
+		// Datasets without their rows, newest season first, for the Data page and switcher
+		datasetList() {
+			const order = { actual: 0, projection: 1, last30: 2 };
+			return Object.values(this.datasets)
+				.map(({ rows, ...meta }) => ({ ...meta, players: rows.length }))
+				.sort((a, b) => (b.season || 0) - (a.season || 0) || (order[a.kind] ?? 3) - (order[b.kind] ?? 3) || a.label.localeCompare(b.label));
+		},
+		// The ESPN projection used for the Proj column: the newest season's
+		projectionDataset() {
+			return this.datasetList.find(dataset => dataset.kind === 'projection') || null;
 		},
 
 		// List entries whose player isn't in the current data: ambiguous (pick one) or missing
@@ -172,11 +231,13 @@ export const usePickerStore = defineStore('picker', {
 				const key = this.rowKeys.get(player);
 				const position = player[config.pos_column];
 				const extra = this.position_overrides[key] || [];
+				const espnEligible = this.espnInfo.get(key)?.eligible || [];
 				return {
 					key: key,
 					name: player[config.name_column],
 					position: position,
-					positions: POSITIONS.filter(p => p === position || extra.includes(p)),
+					espnEligible: espnEligible,
+					positions: POSITIONS.filter(p => p === position || espnEligible.includes(p) || extra.includes(p)),
 					score: scoreByKey.get(key),
 					ir: ir.has(key)
 				};
@@ -266,12 +327,27 @@ export const usePickerStore = defineStore('picker', {
 	},
 
 	actions: {
-		// Lists carry over: entries are matched to the new data by player key (see identity.js).
+		// A CSV becomes the "csv" dataset and is made active. Lists carry over: entries are matched
+		// to the new data by player key (see identity.js).
 		// Returns { ambiguous, missing } counts of list entries that need attention.
-		importPlayers(importData) {
-			this.columns = importData[0];
-			this.config.key_column = detectKeyColumn(this.columns);
-			this.setPlayers(importData.slice(1));
+		importPlayers(importData, label = 'Imported CSV') {
+			this.datasets = {
+				...this.datasets,
+				csv: markRaw({ id: 'csv', label: label, kind: 'actual', season: null, source: 'CSV', fetchedAt: Date.now(), columns: importData[0], rows: importData.slice(1) })
+			};
+			return this.useDataset('csv');
+		},
+		// Make a stored dataset the one the app shows and scores
+		useDataset(id) {
+			const dataset = this.datasets[id];
+			if (!dataset) {
+				return { ambiguous: 0, missing: 0 };
+			}
+			this.active_dataset = id;
+			this.columns = dataset.columns;
+			this.config.key_column = detectKeyColumn(dataset.columns);
+			this.config.espn_column = detectEspnColumn(dataset.columns);
+			this.setPlayers(dataset.rows, { perGame: !dataset.normalized });
 			this.reconcileLists();
 			this.evaluatePlayers();
 			const issues = this.listIssues;
@@ -280,55 +356,109 @@ export const usePickerStore = defineStore('picker', {
 				missing: issues.filter(issue => issue.status === 'missing').length
 			};
 		},
-		setPlayers(players) {
-			const config = this.config;
-			const nameColumn = config.name_column;
-			const gamesCol = this.config.games_column;
-			const minutesCol = this.config.minutes_column;
-			const keyCols = this.config.key_columns;
-			const totalCols = this.config.yearly_total_columns;
-			let cleanPlayers = [];
-			const seen = new Set();
-			players.forEach(function(player) {
+		setPlayers(rows, options) {
+			this.players = markRaw(normalizeRows(rows, this.config, options));
+		},
+		/**
+		 * Download ESPN (stats, projections, eligibility) and Basketball-Reference stats via nbaapi,
+		 * link the two ID systems, and store each stat split as a dataset.
+		 * fetchImpl is injectable for tests; onProgress(message) reports each step.
+		 * Returns { datasets, linked, unlinked, issues: { ambiguous, missing }, warnings }.
+		 */
+		async updateStats({ fetchImpl = (...args) => fetch(...args), onProgress = () => {}, now = new Date() } = {}) {
+			const season = currentSeason(now);
+			const warnings = [];
 
-				// Skip blank lines (e.g. a trailing newline in the CSV)
-				if (!player[nameColumn]) {
-					return;
+			onProgress('Downloading ESPN players…');
+			const espn = parseEspnPlayers(await fetchEspnPlayers(season, fetchImpl));
+
+			// Basketball-Reference IDs/stats for this season and last (this season is empty before tip-off),
+			// plus the season before for linking players who missed last season (injuries)
+			const bbrefBySeason = {};
+			for (const year of [season, season - 1, season - 2]) {
+				const label = seasonLabel(year);
+				try {
+					const rows = await fetchNbaapiSeason(year, fetchImpl, (page, pages) => onProgress(`Downloading Basketball-Reference ${label} (${page}/${pages})…`));
+					bbrefBySeason[year] = parseNbaapiRows(rows);
+				} catch (error) {
+					warnings.push(`Basketball-Reference ${label}: ${error.message}`);
 				}
+			}
 
-				// The same player can appear on several rows (e.g. traded); keep the first
-				const identity = dedupeKey(player, config);
-				if(!seen.has(identity)){
-					seen.add(identity);
-
-					// Fix player names: only trim if a backslash exists, otherwise keep as-is
-					let name = player[nameColumn];
-					if (typeof name === 'string') {
-						let junk = name.indexOf('\\');
-						let cleanName = (junk >= 0) ? name.substring(0, junk) : name;
-						// Set the new name (trim stray whitespace)
-						player[nameColumn] = cleanName.trim();
-					}
-
-					// Coerce core numeric fields once
-					player[gamesCol] = toNumber(player[gamesCol]);
-					player[minutesCol] = toNumber(player[minutesCol]);
-					// Coerce key and totals columns to numbers
-					keyCols.forEach(col => { player[col] = toNumber(player[col]); });
-					totalCols.forEach(col => { player[col] = toNumber(player[col]); });
-
-					const gamesPlayed = player[gamesCol];
-
-					// Adjust the yearly totals to per-game safely
-					totalCols.forEach(function(column) {
-						const val = player[column];
-						player[column] = gamesPlayed > 0 ? roundFloat(val / gamesPlayed, 4) : 0;
-					});
-					cleanPlayers.push(player);
+			// Link ESPN to Basketball-Reference. Candidates: every season fetched (newest name wins), IDs in stored
+			// datasets (e.g. an imported CSV) and IDs on your lists. Last season's games played break name ties.
+			onProgress('Linking players…');
+			const candidates = new Map();
+			const addCandidate = (bbrefId, name, team, gp = 0) => {
+				if (bbrefId && name && !candidates.has(bbrefId)) {
+					candidates.set(bbrefId, { bbrefId, name, team, gp });
+				}
+			};
+			[season - 1, season, season - 2].forEach(year => (bbrefBySeason[year] || []).forEach(player => {
+				addCandidate(player.bbrefId, player.name, player.team, year === season - 1 ? player.totals.gp : 0);
+			}));
+			Object.values(this.datasets).forEach(dataset => {
+				const config = configFor(this.config, dataset.columns);
+				if (config.key_column != null) {
+					dataset.rows.forEach(row => addCandidate(String(row[config.key_column] || '').trim(), row[config.name_column], '', 0));
 				}
 			});
+			Object.entries(this.list_names).forEach(([key, name]) => {
+				if (!key.startsWith(ESPN_PREFIX) && !isNameKey(key)) {
+					addCandidate(key, name, '', 0);
+				}
+			});
+			const bbrefPlayers = [...candidates.values()];
+			const relevant = espn.filter(player => Object.values(player.splits).some(split => split.gp > 0));
+			const { links, unlinked } = linkPlayers(
+				relevant.map(player => ({ espnId: player.espnId, name: player.name, team: player.team, gp: player.splits[`00${season - 1}`]?.gp ?? 0 })),
+				bbrefPlayers,
+				this.espn_links
+			);
+			const dismissed = new Set(this.unlinked.filter(entry => entry.dismissed).map(entry => entry.espnId));
 
-			this.players = markRaw(cleanPlayers);
+			// One dataset per ESPN split and per Basketball-Reference season that has games
+			const espnIdFor = Object.fromEntries(Object.entries(links).map(([espnId, bbrefId]) => [bbrefId, espnId]));
+			const fetchedAt = now.getTime();
+			const built = [
+				...espnDatasets(espn, season),
+				...[season, season - 1].filter(year => bbrefBySeason[year]).map(year => nbaapiDataset(bbrefBySeason[year], year, id => espnIdFor[id] || ''))
+			].filter(dataset => dataset.rows.length > 0);
+			const datasets = { ...this.datasets };
+			built.forEach(dataset => {
+				datasets[dataset.id] = markRaw({ ...dataset, columns: API_COLUMNS, fetchedAt });
+			});
+
+			this.espn_links = links;
+			this.unlinked = unlinked.map(entry => ({ ...entry, dismissed: dismissed.has(entry.espnId) }));
+			this.espn_players = Object.fromEntries(espn.map(({ espnId, splits, ...player }) => [espnId, player]));
+			this.datasets = datasets;
+			this.stats_updated_at = fetchedAt;
+
+			// Keep the current dataset (now refreshed); otherwise this season's actuals, else ESPN's projection
+			const preferred = [this.active_dataset, `espn-actual-${season}`, `espn-projection-${season}`, `espn-actual-${season - 1}`];
+			const target = preferred.find(id => id && datasets[id]);
+			const issues = target ? this.useDataset(target) : { ambiguous: 0, missing: 0 };
+
+			return {
+				datasets: built.length,
+				linked: Object.keys(links).length,
+				// Players you can link now; the rest (e.g. rookies) link automatically once Basketball-Reference has them
+				unlinked: this.unlinked.filter(entry => !entry.dismissed && entry.candidates.length > 0).length,
+				issues,
+				warnings
+			};
+		},
+		// Link an ESPN player to a Basketball-Reference ID by hand
+		linkPlayer(espnId, bbrefId) {
+			this.espn_links = { ...this.espn_links, [espnId]: bbrefId };
+			this.unlinked = this.unlinked.filter(entry => entry.espnId !== espnId);
+			this.renameListKey(ESPN_PREFIX + espnId, bbrefId);
+			this.evaluatePlayers();
+		},
+		// Hide a suggestion that isn't the same player; it stays keyed by its ESPN ID
+		dismissLink(espnId) {
+			this.unlinked = this.unlinked.map(entry => (entry.espnId === espnId ? { ...entry, dismissed: true } : entry));
 		},
 		changeScreen(newScreen) {
 			this.config.screen = newScreen;
@@ -392,6 +522,13 @@ export const usePickerStore = defineStore('picker', {
 			if (this.players.length === 0) {
 				return;
 			}
+			// Entries saved under an ESPN ID that has since been linked move to the Basketball-Reference ID
+			PLAYER_LISTS.flatMap(list => this[list]).forEach(key => {
+				const linked = key.startsWith(ESPN_PREFIX) && this.espn_links[key.slice(ESPN_PREFIX.length)];
+				if (linked) {
+					this.renameListKey(key, linked);
+				}
+			});
 			const keys = [...new Set([...PLAYER_LISTS.flatMap(list => this[list]), ...this.ir_players])];
 			const results = reconcileKeys(keys, this.keyRows, this.list_names, this.config);
 			results.forEach((result, key) => {
@@ -435,39 +572,45 @@ export const usePickerStore = defineStore('picker', {
 				? this.ir_players.filter(entry => entry !== key)
 				: [...this.ir_players, key];
 		},
-		// Every setting change re-scores immediately (evaluating takes a few tens of ms)
+		// Every setting change re-scores immediately (a few tens of ms). With a stored dataset the rows are
+		// re-normalized too, so column settings like Season Totals apply without re-importing.
 		changeConfigSetting({ config_key, config_value }) {
 			this.config[config_key] = config_value;
-			this.evaluatePlayers();
+			if (this.active_dataset && this.datasets[this.active_dataset]) {
+				this.useDataset(this.active_dataset);
+			} else {
+				this.evaluatePlayers();
+			}
 		},
+		// Baselines per scored column (key categories plus ranking-only), then a score for each player
+		// who meets the minimum games and minutes; also scores ESPN's projection for the Proj column
 		evaluatePlayers() {
-			const config = this.config;
-
-			// Calculate and store the baseline average for every scored column (key categories plus ranking-only)
-			const averages = {};
-			scoredColumns(config).forEach(column => {
-				averages[column] = categoryAverage(this.players, column, config);
-			});
+			const { averages, scores } = scoreRows(this.players, this.config, this.rowKeys);
 			this.column_averages = averages;
+			this.scores = markRaw(scores);
 
 			// Ranking by a column that is no longer scored falls back to the overall score
 			if (this.active_category !== 'total' && !(this.active_category in averages)) {
 				this.active_category = 'total';
 			}
 
-			// Score each player who has played at least the minimum games and minutes
-			const rowKeys = this.rowKeys;
-			this.scores = markRaw(this.players.filter(player => meetsMinimums(player, config)).map(player => {
-				const scoreData = playerRanking(player, config, averages);
-				scoreData.aboveAverage = countAboveAverage(scoreData, config.key_columns);
-				return {
-					playerKey: rowKeys.get(player),
-					scoreData: scoreData,
-					playerName: player[config.name_column],
-					playerPosition: player[config.pos_column],
-					playerGames: player[config.games_column]
-				};
-			}));
+			this.projection_totals = this.scoreProjection();
+		},
+		// Overall score per player key from ESPN's projected stats (same scoring settings)
+		scoreProjection() {
+			const meta = this.projectionDataset;
+			if (!meta) {
+				return {};
+			}
+			if (meta.id === this.active_dataset) {
+				return Object.fromEntries(this.scores.map(score => [score.playerKey, score.scoreData.total]));
+			}
+			const dataset = this.datasets[meta.id];
+			const config = configFor(this.config, dataset.columns);
+			const players = normalizeRows(dataset.rows, config);
+			const rowKeys = computeKeys(players, dataset.columns, config, this.espn_links);
+			const { scores } = scoreRows(players, config, rowKeys);
+			return Object.fromEntries(scores.map(score => [score.playerKey, score.scoreData.total]));
 		}
 	}
 });
@@ -494,6 +637,7 @@ export const pinia = createPinia();
 const markRowsRaw = function(store) {
 	store.players = markRaw(toRaw(store.players));
 	store.scores = markRaw(toRaw(store.scores));
+	store.datasets = Object.fromEntries(Object.entries(toRaw(store.datasets)).map(([id, dataset]) => [id, markRaw(toRaw(dataset))]));
 };
 
 // The app's single store instance, with persistence attached on first use
@@ -503,8 +647,10 @@ export const useStore = function() {
 		store = usePickerStore(pinia);
 		persist(store);
 		markRowsRaw(store);
-		// Re-score saved players so scores always match the current scoring logic and settings
-		if (store.players.length > 0) {
+		// Re-load the saved dataset so players and scores always match the current logic and settings
+		if (store.active_dataset && store.datasets[store.active_dataset]) {
+			store.useDataset(store.active_dataset);
+		} else if (store.players.length > 0) {
 			store.reconcileLists();
 			store.evaluatePlayers();
 		}

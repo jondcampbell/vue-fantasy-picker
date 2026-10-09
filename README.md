@@ -6,7 +6,9 @@ Runs entirely in the browser on your machine. There's no backend, and everything
 
 ## Features
 
-- **Import** a Basketball-Reference season totals CSV (drag and drop or browse). Players listed on several rows after a trade are de-duplicated, and season totals are converted to per-game.
+- **Online stats** with one click (no account or API key): ESPN's season stats, ESPN's projections, last-30-day stats, positions, injuries and draft ranks, plus Basketball-Reference season stats via nbaapi.com. Each becomes a dataset you can switch between, and every player keeps both their ESPN and Basketball-Reference IDs.
+- **Our own rankings** from any dataset. Rankings also shows a **Proj** column (our score from ESPN's projected stats) and ESPN's draft rank for reference.
+- **CSV import** of a Basketball-Reference season totals export as an alternative. Players listed on several rows after a trade are de-duplicated, and season totals are converted to per-game.
 - **Automatic scoring** after every import and settings change. Each category score is the player's value divided by the category baseline (1.00 = average). For lower-is-better stats like turnovers, a lower value means a higher score.
 - **Configurable baseline**: mean or median, using all qualifying players or only the top 100/150/200, with minimum games and minutes per game.
 - **Rankings**: rank by the overall score or any category, either with the "Rank by" pills or by clicking a column header. Best and worst values in each column are highlighted.
@@ -28,7 +30,9 @@ pnpm dev        # http://localhost:5173
 
 ### Getting stats
 
-On Basketball-Reference, open the season's **Player Totals** table (e.g. `leagues/NBA_2025_totals.html`), choose *Share & Export → Get table as CSV*, save it as a `.csv` file, and import it on the Import screen. The default column settings match that export. If a different export lays out its columns differently, adjust them in Configure.
+Open the **Data** screen and click **Update stats**. It downloads everything in a few seconds and stores it locally. Run it again whenever you want fresh numbers. A few players ESPN and Basketball-Reference name differently (e.g. "Ronald Holland II" vs "Ron Holland") are listed for you to link once.
+
+To use a CSV instead, open the season's **Player Totals** table on Basketball-Reference (e.g. `leagues/NBA_2025_totals.html`), choose *Share & Export → Get table as CSV*, save it as a `.csv` file, and import it on the Data screen.
 
 ## Commands
 

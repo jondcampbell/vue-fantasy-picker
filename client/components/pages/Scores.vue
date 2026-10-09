@@ -1,8 +1,9 @@
 <template>
     <div class="space-y-5">
-        <header>
+        <header class="space-y-3">
             <h2 class="page-title">Rankings</h2>
-            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score.</template></p>
+            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score.</template><template v-if="showProj"> Proj is the same score from ESPN's projected stats.</template></p>
+            <dataset-switcher></dataset-switcher>
         </header>
 
         <div class="card space-y-4 p-4">
@@ -42,6 +43,8 @@
                                 </button>
                             </th>
                             <th class="text-center" title="Categories above average">Above Avg</th>
+                            <th class="text-right" v-if="showProj" title="Overall score from ESPN's projected stats">Proj</th>
+                            <th class="text-right" v-if="showEspnRank" title="ESPN's own draft rank (category leagues), for reference only">ESPN rk</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,6 +59,9 @@
                         :playerName="scoreItem.playerName"
                         :playerPosition="scoreItem.playerPosition"
                         :playerGames="scoreItem.playerGames"
+                        :proj="showProj ? ($store.projection_totals[scoreItem.playerKey] ?? null) : undefined"
+                        :espn="espnFor(scoreItem.playerKey)"
+                        :showEspnRank="showEspnRank"
                         ></score-row>
                     </tbody>
                 </table>
@@ -73,6 +79,7 @@
     import PlayerListScoring from 'components/partials/PlayerListScoring.vue';
     import { scoredColumns } from 'store/scoring';
     import TableFooter from 'components/partials/TableFooter.vue';
+    import DatasetSwitcher from 'components/partials/DatasetSwitcher.vue';
     import rowLimit from 'components/mixins/rowLimit.js';
 
 
@@ -82,11 +89,20 @@
             isActive(key) {
                 return this.$store.active_category == key;
             },
+            espnFor(key) {
+                return this.$store.espnInfo.get(key) || null;
+            },
             changeCategory(key) {
                 this.$store.changeActiveCategory(key);
             }
         },
         computed: {
+            showProj() {
+                return this.$store.projectionDataset !== null;
+            },
+            showEspnRank() {
+                return Object.keys(this.$store.espn_players).length > 0;
+            },
             // Scored columns in table order (column index order, matching scoreData), then the overall score
             sortableColumns() {
                 const state = this.$store;
@@ -124,7 +140,8 @@
             PlayerSummary,
             PlayerFiltering,
             PlayerListScoring,
-            TableFooter
+            TableFooter,
+            DatasetSwitcher
         }
     }
 </script>

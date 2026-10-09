@@ -102,7 +102,7 @@
                 const state = this.$store;
                 const hasScores = state.scores.length > 0;
                 return [
-                    { screen: 1, label: 'Import', icon: 'cloud', visible: true, active: this.screen == 1, done: state.players.length > 0, onClick: () => this.changeScreen(1) },
+                    { screen: 1, label: 'Data', icon: 'cloud', visible: true, active: this.screen == 1, done: state.players.length > 0, onClick: () => this.changeScreen(1) },
                     { screen: 2, label: 'Players', icon: 'list', visible: true, active: this.screen == 2, done: hasScores, onClick: () => this.changeScreen(2) },
                     { screen: 3, label: 'Rankings', icon: 'trophy', visible: hasScores, active: this.screen == 3, onClick: () => this.changeScreen(3) },
                     { screen: 5, label: 'Watch List', icon: 'binoculars', visible: true, active: this.screen == 5, onClick: () => this.changeScreen(5) },

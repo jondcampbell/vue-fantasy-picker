@@ -124,7 +124,7 @@
                             <select class="field" size="10" multiple v-model="yearlyTotalColumnsModel">
                                 <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                             </select>
-                            <p class="help">Converted to per-game on import, so changes here need a re-import.</p>
+                            <p class="help">Season totals in these columns are converted to per-game.</p>
                         </label>
                     </div>
                     <p class="help">Hold ⌘ (or Ctrl) to select multiple columns.</p>

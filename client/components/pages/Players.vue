@@ -1,8 +1,9 @@
 <template>
     <div class="space-y-5">
-        <header>
+        <header class="space-y-3">
             <h2 class="page-title">Players</h2>
-            <p class="page-subtitle">Raw stats from your import. Scores update automatically on the Rankings screen.</p>
+            <p class="page-subtitle">Raw stats from the active dataset. Scores update automatically on the Rankings screen.</p>
+            <dataset-switcher></dataset-switcher>
         </header>
 
         <div class="card space-y-4 p-4">
@@ -11,7 +12,7 @@
         </div>
 
         <player-table :players="filteredPlayers">
-            <template #empty v-if="$store.players.length == 0">No players yet. Import a stats CSV to get started.</template>
+            <template #empty v-if="$store.players.length == 0">No players yet. Use Update stats on the Data screen, or import a CSV.</template>
         </player-table>
     </div>
 </template>
@@ -20,6 +21,7 @@
     import PlayerTable from 'components/partials/PlayerTable.vue';
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
     import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
+    import DatasetSwitcher from 'components/partials/DatasetSwitcher.vue';
 
     export default {
         computed: {
@@ -30,7 +32,8 @@
         components: {
             PlayerTable,
             PlayerSummary,
-            PlayerFiltering
+            PlayerFiltering,
+            DatasetSwitcher
         }
     }
 </script>
