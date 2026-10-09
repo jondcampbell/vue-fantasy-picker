@@ -8,6 +8,7 @@ describe('parseSlots', () => {
 	it('parses a comma list in any case and reports unknown entries', () => {
 		expect(parseSlots('pg, SG , util,bench, ir')).toEqual({ slots: ['PG', 'SG', 'UTIL', 'Bench', 'IR'], invalid: [] });
 		expect(parseSlots('PG, QB, , C').invalid).toEqual(['QB']);
+		expect(parseSlots('g/f, PF/C').slots).toEqual(['G/F', 'PF/C']);
 	});
 
 	it('round-trips the default ESPN slots', () => {
@@ -22,6 +23,10 @@ describe('canFill', () => {
 		expect(canFill('F', ['PF'])).toBe(true);
 		expect(canFill('UTIL', ['C'])).toBe(true);
 		expect(canFill('Bench', ['C'])).toBe(false);
+		expect(canFill('G/F', ['SF'])).toBe(true);
+		expect(canFill('G/F', ['C'])).toBe(false);
+		expect(canFill('PF/C', ['C'])).toBe(true);
+		expect(canFill('F/C', ['PG'])).toBe(false);
 	});
 });
 

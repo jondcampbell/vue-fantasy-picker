@@ -23,6 +23,27 @@
             </ul>
         </section>
 
+        <section class="card space-y-3 p-5">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h3 class="font-semibold">ESPN league</h3>
+                    <p class="help">Your team, other teams' players, IR, lineup slots and scoring categories from your private ESPN league. Login cookies stay in <code>.env.local</code> on this machine.</p>
+                </div>
+                <button type="button" class="btn btn-primary" :disabled="syncing" @click="syncLeague">
+                    <icon name="users"></icon> {{ syncing ? 'Syncing…' : 'Sync league' }}
+                </button>
+            </div>
+            <p class="text-sm text-bad" v-if="syncError">Sync failed: {{ syncError }}</p>
+            <template v-else-if="$store.league">
+                <p class="text-sm">
+                    <span class="font-medium">{{ $store.league.teamName || 'Your team' }}</span>
+                    <span class="text-muted"> · {{ $store.league.name }} · {{ $store.league.teams }} teams · synced {{ formatDate($store.league.syncedAt) }}</span>
+                </p>
+                <p class="text-sm text-warn" v-if="!$store.league.drafted">Your league hasn't drafted yet. Lineup slots and scoring categories are synced; rosters will sync after the draft.</p>
+                <p class="text-sm text-warn" v-if="$store.league.skippedCategories.length > 0">Not scored here: {{ $store.league.skippedCategories.join(', ') }}.</p>
+            </template>
+        </section>
+
         <section class="card overflow-hidden" v-if="$store.datasetList.length > 0">
             <div class="border-b border-line px-4 py-3">
                 <h3 class="font-semibold">Datasets</h3>
@@ -90,6 +111,8 @@
                 fileName: '',
                 dragging: false,
                 updating: false,
+                syncing: false,
+                syncError: '',
                 progress: '',
                 error: '',
                 warnings: []
@@ -117,6 +140,22 @@
                 } finally {
                     this.updating = false;
                     this.progress = '';
+                }
+            },
+            async syncLeague() {
+                this.syncing = true;
+                this.syncError = '';
+                try {
+                    const result = await this.$store.syncLeague();
+                    const notes = result.drafted
+                        ? `${result.myPlayers} players on ${result.teamName}, ${result.takenPlayers} on other teams.`
+                        : 'Lineup slots and scoring categories updated. Rosters will sync after your draft.';
+                    const attention = attentionMessage(result.issues);
+                    Swal.fire('League synced', [notes, attention].filter(Boolean).join(' '), 'success');
+                } catch (error) {
+                    this.syncError = error.message;
+                } finally {
+                    this.syncing = false;
                 }
             },
             importPlayersFile: function (e) {

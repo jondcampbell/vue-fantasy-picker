@@ -13,6 +13,11 @@ const SLOT_POSITIONS = {
 	C: ['C'],
 	G: ['PG', 'SG'],
 	F: ['SF', 'PF'],
+	// ESPN combo slots
+	'SG/SF': ['SG', 'SF'],
+	'G/F': ['PG', 'SG', 'SF', 'PF'],
+	'PF/C': ['PF', 'C'],
+	'F/C': ['SF', 'PF', 'C'],
 	UTIL: POSITIONS
 };
 export const SLOT_TYPES = [...Object.keys(SLOT_POSITIONS), BENCH, IR];
@@ -41,8 +46,8 @@ export const canFill = function(slot, positions) {
 	return (SLOT_POSITIONS[slot] || []).some(position => positions.includes(position));
 };
 
-// Specific slots first, then G/F, then UTIL, so flexible slots stay open for players who need them
-const slotPriority = (slot) => (slot === 'UTIL' ? 2 : slot === 'G' || slot === 'F' ? 1 : 0);
+// Specific slots first, then flex (G, F and combo slots), then UTIL, so flexible slots stay open for players who need them
+const slotPriority = (slot) => (slot === 'UTIL' ? 2 : SLOT_POSITIONS[slot]?.length > 1 ? 1 : 0);
 
 // Maximum bipartite matching of players (in priority order) to slot entries [{ slot, index }].
 // Earlier players are never displaced from the matching by later ones, only moved between slots.

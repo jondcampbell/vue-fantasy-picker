@@ -6,9 +6,10 @@ import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots } from './roster'
 import { detectKeyColumn, detectEspnColumn, detectTeamColumn, computeKeys, reconcileKeys, isNameKey, ESPN_PREFIX } from './identity'
 import { normalizeRows } from './normalize'
 import { linkPlayers } from './registry'
-import { API_COLUMNS, currentSeason, seasonLabel } from '../sources/layout'
+import { API_COLUMNS, BBREF_COLUMNS, currentSeason, seasonLabel } from '../sources/layout'
 import { fetchEspnPlayers, parseEspnPlayers, espnDatasets } from '../sources/espn'
 import { fetchNbaapiSeason, parseNbaapiRows, nbaapiDataset } from '../sources/nbaapi'
+import { fetchLeague, parseLeague } from '../sources/espnLeague'
 
 const defaultState = () => ({
 	config: {
@@ -98,7 +99,9 @@ const defaultState = () => ({
 	espn_players: {},
 	// player key -> overall score computed from ESPN's projected stats (the Rankings "Proj" column)
 	projection_totals: {},
-	stats_updated_at: null
+	stats_updated_at: null,
+	// Last ESPN league sync: { name, teamName, teams, drafted, syncedAt, skippedCategories }
+	league: null
 });
 
 const PLAYER_LISTS = ['my_team', 'taken_players', 'watch_list'];
@@ -199,7 +202,8 @@ export const usePickerStore = defineStore('picker', {
 			}
 			const config = this.config;
 			const teamColumn = detectTeamColumn(this.columns);
-			const keys = [...new Set(PLAYER_LISTS.flatMap(list => this[list]))].filter(key => !this.keyRows.has(key));
+			// Players ESPN knows (e.g. rostered rookies) aren't issues: they just have no stats in this dataset
+			const keys = [...new Set(PLAYER_LISTS.flatMap(list => this[list]))].filter(key => !this.keyRows.has(key) && !this.espnInfo.has(key));
 			const results = reconcileKeys(keys, this.keyRows, this.list_names, config);
 			return keys.map(key => {
 				const result = results.get(key);
@@ -227,14 +231,16 @@ export const usePickerStore = defineStore('picker', {
 			const config = this.config;
 			const scoreByKey = new Map(this.scores.map(score => [score.playerKey, score.scoreData.total]));
 			const ir = new Set(this.ir_players);
-			return playersForKeys(this.keyRows, this.my_team).map(player => {
-				const key = this.rowKeys.get(player);
-				const position = player[config.pos_column];
+			// Players without stats in this dataset (e.g. rookies) still fill a slot, using ESPN's details
+			return this.my_team.filter(key => this.keyRows.has(key) || this.espnInfo.has(key)).map(key => {
+				const player = this.keyRows.get(key);
+				const espn = this.espnInfo.get(key);
+				const position = player ? player[config.pos_column] : espn.pos;
 				const extra = this.position_overrides[key] || [];
-				const espnEligible = this.espnInfo.get(key)?.eligible || [];
+				const espnEligible = espn?.eligible || [];
 				return {
 					key: key,
-					name: player[config.name_column],
+					name: player ? player[config.name_column] : espn.name,
 					position: position,
 					espnEligible: espnEligible,
 					positions: POSITIONS.filter(p => p === position || espnEligible.includes(p) || extra.includes(p)),
@@ -459,6 +465,77 @@ export const usePickerStore = defineStore('picker', {
 		// Hide a suggestion that isn't the same player; it stays keyed by its ESPN ID
 		dismissLink(espnId) {
 			this.unlinked = this.unlinked.map(entry => (entry.espnId === espnId ? { ...entry, dismissed: true } : entry));
+		},
+		/**
+		 * Sync the private ESPN league (one request, via the local proxy): roster slots and scoring categories
+		 * from the league settings; after the draft, My Team / Taken / IR replaced by the league's rosters
+		 * (watch list and extra positions are kept). Before the draft rosters are empty, so lists are left alone.
+		 * Returns { teamName, teams, drafted, myPlayers, takenPlayers, skippedCategories, issues }.
+		 */
+		async syncLeague({ fetchImpl = (...args) => fetch(...args), now = new Date() } = {}) {
+			const { json, swid } = await fetchLeague(currentSeason(now), fetchImpl);
+			const league = parseLeague(json, swid);
+			if (league.drafted && !league.myTeam) {
+				throw new Error("Couldn't find your team in the league: check ESPN_SWID in .env.local.");
+			}
+
+			// Settings: lineup slots, scoring categories (lower-is-better ones like TO), and any category
+			// that is now scored stops being ranking-only
+			const config = this.config;
+			if (league.rosterSlots.length > 0) {
+				config.roster_slots = league.rosterSlots;
+			}
+			const scored = league.categories.filter(category => category.column);
+			if (scored.length > 0) {
+				const index = header => BBREF_COLUMNS.indexOf(header);
+				config.key_columns = scored.map(category => index(category.column)).sort((a, b) => a - b);
+				config.negative_columns = scored.filter(category => category.reverse).map(category => index(category.column)).sort((a, b) => a - b);
+				config.ranking_only_columns = (config.ranking_only_columns || []).filter(column => !config.key_columns.includes(column));
+			}
+
+			// Rosters
+			const keyFor = espnId => this.espn_links[espnId] || ESPN_PREFIX + espnId;
+			let myPlayers = 0;
+			let takenPlayers = 0;
+			if (league.drafted) {
+				const names = { ...this.list_names };
+				const mine = [];
+				const taken = [];
+				const ir = [];
+				league.teams.forEach(team => team.players.forEach(player => {
+					const key = keyFor(player.espnId);
+					names[key] = player.name;
+					if (team.mine) {
+						mine.push(key);
+						if (player.slot === 'IR') ir.push(key);
+					} else {
+						taken.push(key);
+					}
+				}));
+				this.my_team = mine;
+				this.taken_players = taken;
+				this.ir_players = ir;
+				this.list_names = names;
+				this.forgetUnusedNames();
+				myPlayers = mine.length;
+				takenPlayers = taken.length;
+			}
+
+			this.league = {
+				name: league.name,
+				teamName: league.myTeam?.name || '',
+				teams: league.teams.length,
+				drafted: league.drafted,
+				syncedAt: now.getTime(),
+				skippedCategories: league.categories.filter(category => !category.column).map(category => category.name)
+			};
+
+			// Re-load the dataset once so the new settings and lists are applied and scored
+			const issues = this.active_dataset && this.datasets[this.active_dataset]
+				? this.useDataset(this.active_dataset)
+				: (this.evaluatePlayers(), { ambiguous: 0, missing: 0 });
+
+			return { ...this.league, myPlayers, takenPlayers, issues };
 		},
 		changeScreen(newScreen) {
 			this.config.screen = newScreen;

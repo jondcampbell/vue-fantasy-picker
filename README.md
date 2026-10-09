@@ -14,6 +14,7 @@ Runs entirely in the browser on your machine. There's no backend, and everything
 - **Rankings**: rank by the overall score or any category, either with the "Rank by" pills or by clicking a column header. Best and worst values in each column are highlighted.
 - **Ranking-only columns** (BLK and TOV by default) can be ranked without counting toward the overall score.
 - **Lists**: mark players as on your team, taken by another team, or watched, then filter any table by availability, position or name. Lists carry over when you re-import updated stats: players are matched by their Basketball-Reference ID, or by name if a file has no IDs. Anyone who can't be matched, or whose name is shared by several players, is flagged for you to resolve.
+- **ESPN league sync** for a private league: your team, every other team's players, IR, lineup slots and scoring categories in one click. Login cookies stay in a local `.env.local` file.
 - **Roster slots** (ESPN layout by default: PG, SG, SF, PF, C, G, F, UTIL ×3, Bench ×4, IR). My Team fills the lineup automatically, best scores first. You can add extra position eligibility per player, move players to IR, and see open slots at a glance.
 - **Column mapping** in Configure: choose the name, position, games, minutes, scoring, lower-is-better, ranking-only and season-total columns.
 - **Light/dark theme** that follows your system, or can be set by hand.
@@ -33,6 +34,19 @@ pnpm dev        # http://localhost:5173
 Open the **Data** screen and click **Update stats**. It downloads everything in a few seconds and stores it locally. Run it again whenever you want fresh numbers. A few players ESPN and Basketball-Reference name differently (e.g. "Ronald Holland II" vs "Ron Holland") are listed for you to link once.
 
 To use a CSV instead, open the season's **Player Totals** table on Basketball-Reference (e.g. `leagues/NBA_2025_totals.html`), choose *Share & Export → Get table as CSV*, save it as a `.csv` file, and import it on the Data screen.
+
+### Syncing your ESPN league
+
+1. Create `.env.local` in the project folder (it's git-ignored):
+   ```
+   ESPN_LEAGUE_ID=12345
+   ESPN_S2=<espn_s2 cookie>
+   ESPN_SWID={<SWID cookie, with the curly braces>}
+   ```
+   Find the cookies while logged in at fantasy.espn.com: DevTools → Application → Cookies → `https://fantasy.espn.com`.
+2. Restart `pnpm dev`, open **Data**, and click **Sync league**.
+
+Before your draft, only lineup slots and scoring categories sync; rosters sync once the draft is done. If ESPN rejects the cookies later, copy fresh values into `.env.local`.
 
 ## Commands
 
