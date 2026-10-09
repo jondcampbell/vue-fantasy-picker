@@ -2,7 +2,7 @@
     <div class="space-y-5">
         <header>
             <h2 class="page-title">Rankings</h2>
-            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.getters.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score.</template></p>
+            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score.</template></p>
         </header>
 
         <div class="card space-y-4 p-4">
@@ -10,7 +10,7 @@
             <player-filtering></player-filtering>
         </div>
 
-        <player-list-scoring :players="filteredPlayers" v-if="! $store.state.search_text && position == 'all' && filteredPlayers.length > 0"></player-list-scoring>
+        <player-list-scoring :players="filteredPlayers" v-if="! $store.search_text && position == 'all' && filteredPlayers.length > 0"></player-list-scoring>
 
         <div class="card overflow-hidden" v-if="filteredPlayers.length > 0">
             <div class="flex items-center gap-3 border-b border-line px-3 py-2">
@@ -76,16 +76,16 @@
     export default {
         methods: {
             isActive(key) {
-                return this.$store.state.active_category == key;
+                return this.$store.active_category == key;
             },
             changeCategory(key) {
-                this.$store.dispatch('changeActiveCategory', key);
+                this.$store.changeActiveCategory(key);
             }
         },
         computed: {
             // Scored columns in table order (column index order, matching scoreData), then the overall score
             sortableColumns() {
-                const state = this.$store.state;
+                const state = this.$store;
                 const rankingOnly = state.config.ranking_only_columns || [];
                 const columns = scoredColumns(state.config).map(index => ({
                     key: index,
@@ -103,16 +103,16 @@
                 return this.sortableColumns.filter(column => column.rankingOnly);
             },
             position() {
-                return this.$store.state.active_position;
+                return this.$store.active_position;
             },
             filteredPlayers() {
-                return this.$store.getters.sortedFilteredPlayerScores;
+                return this.$store.sortedFilteredPlayerScores;
             },
             bestScores(){
-                return this.$store.getters.bestScores;
+                return this.$store.bestScores;
             },
             worstScores(){
-                return this.$store.getters.worstScores;
+                return this.$store.worstScores;
             }
         },
         components: {

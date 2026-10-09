@@ -21,7 +21,7 @@
 
         <div class="flex items-center justify-between gap-4">
             <p class="text-sm text-muted">
-                <template v-if="$store.state.players.length > 0"><icon name="check" class="mr-1 inline text-good"></icon>{{ $store.state.players.length }} players currently loaded</template>
+                <template v-if="$store.players.length > 0"><icon name="check" class="mr-1 inline text-good"></icon>{{ $store.players.length }} players currently loaded</template>
                 <template v-else>No players loaded yet</template>
             </p>
             <button type="button" @click="importPlayersFile" class="btn btn-primary" :disabled="! hasFiles">
@@ -55,7 +55,7 @@
                 fr.onload = function (e) {
                     papaparse.parse(e.target.result, {
                         complete: function(results) {
-                            vuethis.$store.dispatch('importPlayers', results.data);
+                            vuethis.$store.importPlayers(results.data);
                             vuethis.$refs.fileInput.value = '';
                             vuethis.hasFiles = false;
                             vuethis.fileName = '';

@@ -10,7 +10,7 @@
         </div>
 
         <player-table :players="filteredPlayers">
-            <template #empty v-if="$store.state.scores.length == 0">Evaluate players first, then use the <icon name="users" class="mx-0.5 inline"></icon> button to build your team.</template>
+            <template #empty v-if="$store.scores.length == 0">Evaluate players first, then use the <icon name="users" class="mx-0.5 inline"></icon> button to build your team.</template>
             <template #empty v-else>No players on your team yet. Use the <icon name="users" class="mx-0.5 inline"></icon> button on any player to add them.</template>
         </player-table>
     </div>
@@ -24,7 +24,7 @@
         methods: {},
         computed: {
             filteredPlayers() {
-                return this.$store.getters.myPlayers;
+                return this.$store.myPlayers;
             }
         },
         components: {

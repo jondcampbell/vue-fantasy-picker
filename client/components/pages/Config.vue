@@ -52,7 +52,7 @@
                 <div>
                     <span class="label">Positions</span>
                     <div class="flex flex-wrap gap-1.5">
-                        <span class="chip" v-for="position in $store.state.config.positions" :key="position">{{ position }}</span>
+                        <span class="chip" v-for="position in $store.config.positions" :key="position">{{ position }}</span>
                     </div>
                 </div>
             </section>
@@ -60,7 +60,7 @@
             <section class="card space-y-4 p-5">
                 <h3 class="font-semibold">Columns</h3>
 
-                <p class="text-sm text-muted" v-if="$store.state.columns.length == 0">Import a CSV to map its columns.</p>
+                <p class="text-sm text-muted" v-if="$store.columns.length == 0">Import a CSV to map its columns.</p>
 
                 <template v-else>
                     <div class="grid gap-4 sm:grid-cols-2">
@@ -128,110 +128,111 @@
 </template>
 
 <script>
-    import { mapState } from 'vuex';
+    import { mapState } from 'pinia';
+    import { usePickerStore } from 'store';
 
     export default {
         methods: {
             changeAverageMode: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'average_mode', config_value: parseInt(e.target.value) });
+                this.$store.changeConfigSetting({ config_key: 'average_mode', config_value: parseInt(e.target.value) });
             },
             changeAveragePoolSize: function(e) {
                 const raw = e.target.value;
                 const value = raw === 'all' ? 'all' : parseInt(raw);
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'average_pool_size', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'average_pool_size', config_value: value });
             },
             changeTeamsInLeague: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'teams_in_league', config_value: parseInt(e.target.value) });
+                this.$store.changeConfigSetting({ config_key: 'teams_in_league', config_value: parseInt(e.target.value) });
             },
             changePlayersPerTeam: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'players_per_team', config_value: parseInt(e.target.value) });
+                this.$store.changeConfigSetting({ config_key: 'players_per_team', config_value: parseInt(e.target.value) });
             },
             changeTopPlayers: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'top_players', config_value: parseInt(e.target.value) });
+                this.$store.changeConfigSetting({ config_key: 'top_players', config_value: parseInt(e.target.value) });
             },
             changeMinGamesPlayed: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'min_games_played', config_value: parseInt(e.target.value) });
+                this.$store.changeConfigSetting({ config_key: 'min_games_played', config_value: parseInt(e.target.value) });
             },
             changeMinMinutesPlayed: function(e) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'min_minutes_played', config_value: parseInt(e.target.value) });
+                this.$store.changeConfigSetting({ config_key: 'min_minutes_played', config_value: parseInt(e.target.value) });
             },
             changeNameColumn: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'name_column', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'name_column', config_value: value });
             },
             changePosColumn: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'pos_column', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'pos_column', config_value: value });
             },
             changeGamesColumn: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'games_column', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'games_column', config_value: value });
             },
             changeMinutesColumn: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'minutes_column', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'minutes_column', config_value: value });
             },
             onMultiChange: function(e, key) {
                 const values = Array.from(e.target.selectedOptions).map(o => parseInt(o.value));
-                this.$store.dispatch('changeConfigSetting',{ config_key: key, config_value: values });
+                this.$store.changeConfigSetting({ config_key: key, config_value: values });
             },
             changeNegativeColumns: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'negative_columns', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'negative_columns', config_value: value });
             },
             changeYearlyTotalColumns: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'yearly_total_columns', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'yearly_total_columns', config_value: value });
             },
             changeKeyColumns: function(value) {
-                this.$store.dispatch('changeConfigSetting',{ config_key: 'key_columns', config_value: value });
+                this.$store.changeConfigSetting({ config_key: 'key_columns', config_value: value });
             },
             columnLabel: function(index) {
-                return `${this.$store.state.columns[index]} (Column ${index})`;
+                return `${this.$store.columns[index]} (Column ${index})`;
             }
         },
         computed: {
             positions: function () {
-                let positions = this.$store.state.config.positions;
+                let positions = this.$store.config.positions;
                 return positions.join(',');
             },
             available_columns_simple: function () {
-                return this.$store.state.columns.map((column,index) => {
+                return this.$store.columns.map((column,index) => {
                     return index;
                 });
             },
             // Two-way bindings for multi-selects
             keyColumnsModel: {
                 get() {
-                    return this.$store.state.config.key_columns;
+                    return this.$store.config.key_columns;
                 },
                 set(values) {
                     const nums = values.map(v => parseInt(v));
-                    this.$store.dispatch('changeConfigSetting', { config_key: 'key_columns', config_value: nums });
+                    this.$store.changeConfigSetting({ config_key: 'key_columns', config_value: nums });
                 }
             },
             negativeColumnsModel: {
                 get() {
-                    return this.$store.state.config.negative_columns;
+                    return this.$store.config.negative_columns;
                 },
                 set(values) {
                     const nums = values.map(v => parseInt(v));
-                    this.$store.dispatch('changeConfigSetting', { config_key: 'negative_columns', config_value: nums });
+                    this.$store.changeConfigSetting({ config_key: 'negative_columns', config_value: nums });
                 }
             },
             rankingOnlyColumnsModel: {
                 get() {
-                    return this.$store.state.config.ranking_only_columns;
+                    return this.$store.config.ranking_only_columns;
                 },
                 set(values) {
                     const nums = values.map(v => parseInt(v));
-                    this.$store.dispatch('changeConfigSetting', { config_key: 'ranking_only_columns', config_value: nums });
+                    this.$store.changeConfigSetting({ config_key: 'ranking_only_columns', config_value: nums });
                 }
             },
             yearlyTotalColumnsModel: {
                 get() {
-                    return this.$store.state.config.yearly_total_columns;
+                    return this.$store.config.yearly_total_columns;
                 },
                 set(values) {
                     const nums = values.map(v => parseInt(v));
-                    this.$store.dispatch('changeConfigSetting', { config_key: 'yearly_total_columns', config_value: nums });
+                    this.$store.changeConfigSetting({ config_key: 'yearly_total_columns', config_value: nums });
                 }
             },
-            ...mapState({
+            ...mapState(usePickerStore, {
                 average_mode: state => state.config.average_mode,
                 average_pool_size: state => state.config.average_pool_size,
                 teams_in_league: state => state.config.teams_in_league,

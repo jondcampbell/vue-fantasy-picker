@@ -5,7 +5,7 @@
                 <h2 class="page-title">Players</h2>
                 <p class="page-subtitle">Raw stats from your import. Evaluate to score players against the category baselines.</p>
             </div>
-            <button type="button" @click="evaluatePlayers()" class="btn btn-primary" :disabled="$store.state.players.length == 0">
+            <button type="button" @click="evaluatePlayers()" class="btn btn-primary" :disabled="$store.players.length == 0">
                 <icon name="chart"></icon> Evaluate Players
             </button>
         </header>
@@ -16,7 +16,7 @@
         </div>
 
         <player-table :players="filteredPlayers">
-            <template #empty v-if="$store.state.players.length == 0">No players yet. Import a stats CSV to get started.</template>
+            <template #empty v-if="$store.players.length == 0">No players yet. Import a stats CSV to get started.</template>
         </player-table>
     </div>
 </template>
@@ -30,13 +30,13 @@
     export default {
         methods: {
             evaluatePlayers() {
-                this.$store.dispatch('evaluatePlayers');
+                this.$store.evaluatePlayers();
                 Swal.fire("Woot!", "We evaluated your players", "success");
             }
         },
         computed: {
             filteredPlayers() {
-                return this.$store.getters.filteredPlayers;
+                return this.$store.filteredPlayers;
             }
         },
         components: {

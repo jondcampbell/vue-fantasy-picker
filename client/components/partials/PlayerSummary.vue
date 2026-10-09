@@ -2,7 +2,7 @@
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div class="text-sm"><span class="text-lg font-semibold tabular-nums">{{ playerCount }}</span> <span class="text-muted">players</span></div>
         <div class="flex flex-wrap gap-1.5">
-            <span class="chip" v-for="position in $store.state.config.positions" :key="position">
+            <span class="chip" v-for="position in $store.config.positions" :key="position">
                 <span class="text-muted">{{ position }}</span> <span class="tabular-nums">{{ countPlayerPosition(position) }}</span>
             </span>
         </div>
@@ -23,7 +23,7 @@
                     }).length;
                 } else {
                     return this.players.filter(player => {
-                        return player[this.$store.state.config.pos_column] == position;
+                        return player[this.$store.config.pos_column] == position;
                     }).length;
                 }
             }

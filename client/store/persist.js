@@ -1,4 +1,4 @@
-// Persists the whole store to localStorage (same key vuex-persist used, so saved data carries over).
+// Persists the whole store to localStorage. Keeps the key the old Vuex/vuex-persist setup used, so saved data carries over.
 // Saved values replace defaults wholesale; settings missing from saved state fall back to defaults.
 
 import { roundFloat } from './scoring'
@@ -54,23 +54,14 @@ const writeState = function(state) {
 	}
 };
 
-export const persistPlugin = function(store) {
+// Restore saved state into a Pinia store, then save after every change
+export const persist = function(store) {
 	if (typeof window === 'undefined' || !window.localStorage) {
 		return;
 	}
 
-	store.replaceState(restoreState(store.state, readSaved()));
+	store.$state = restoreState(store.$state, readSaved());
 
-	// Coalesce saves so a burst of mutations (e.g. evaluating every player) writes once
-	let savePending = false;
-	store.subscribe((mutation, state) => {
-		if (savePending) {
-			return;
-		}
-		savePending = true;
-		queueMicrotask(() => {
-			savePending = false;
-			writeState(state);
-		});
-	});
+	// $subscribe batches changes per tick, so a burst of updates writes once
+	store.$subscribe((mutation, state) => writeState(state), { detached: true });
 };

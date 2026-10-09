@@ -23,7 +23,7 @@
         methods: {},
         computed: {
             filteredPlayers() {
-                return this.$store.getters.watchList;
+                return this.$store.watchList;
             }
         },
         components: {

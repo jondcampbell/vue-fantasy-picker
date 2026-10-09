@@ -4,7 +4,7 @@
             <div class="label mb-0.5">Overall</div>
             <div class="text-lg font-semibold tabular-nums" :class="scoreClass(teamOverallScore)">{{ teamOverallScore.toFixed(3) }}</div>
         </div>
-        <div class="card px-3 py-2" v-for="(column, index) in $store.getters.keyColumns" :key="column">
+        <div class="card px-3 py-2" v-for="(column, index) in $store.keyColumns" :key="column">
             <div class="label mb-0.5">{{column}}</div>
             <div class="text-lg font-semibold tabular-nums" :class="scoreClass(teamScores[index])">{{ teamScores[index].toFixed(3) }}</div>
         </div>
@@ -25,7 +25,7 @@
         computed: {
             teamScores() {
                 let players = this.players;
-                let key_columns = this.$store.state.config.key_columns;
+                let key_columns = this.$store.config.key_columns;
                 let scores = [];
                 key_columns.forEach((column) => {
                     let columnTotal = 0;

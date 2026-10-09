@@ -25,9 +25,9 @@
 					<section v-if="myPlayers.length > 0">
 						<h3 class="label flex items-center gap-1.5"><span class="size-2 rounded-full bg-good"></span>My Team · {{ myPlayers.length }}</h3>
 						<ul class="space-y-0.5 text-sm">
-							<li v-for="player in myPlayers" :key="player[$store.state.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
-								<span class="truncate">{{ player[$store.state.config.name_column] }}</span>
-								<span class="chip">{{ player[$store.state.config.pos_column] }}</span>
+							<li v-for="player in myPlayers" :key="player[$store.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
+								<span class="truncate">{{ player[$store.config.name_column] }}</span>
+								<span class="chip">{{ player[$store.config.pos_column] }}</span>
 							</li>
 						</ul>
 					</section>
@@ -35,9 +35,9 @@
 					<section v-if="takenPlayers.length > 0">
 						<h3 class="label flex items-center gap-1.5"><span class="size-2 rounded-full bg-bad"></span>Taken · {{ takenPlayers.length }}</h3>
 						<ul class="space-y-0.5 text-sm text-muted">
-							<li v-for="player in takenPlayers" :key="player[$store.state.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
-								<span class="truncate">{{ player[$store.state.config.name_column] }}</span>
-								<span class="chip">{{ player[$store.state.config.pos_column] }}</span>
+							<li v-for="player in takenPlayers" :key="player[$store.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
+								<span class="truncate">{{ player[$store.config.name_column] }}</span>
+								<span class="chip">{{ player[$store.config.pos_column] }}</span>
 							</li>
 						</ul>
 					</section>
@@ -46,27 +46,27 @@
 
 			<main class="min-w-0 flex-1 p-4 sm:p-6" role="main">
 
-				<template v-if="$store.state.config.screen == 1">
+				<template v-if="$store.config.screen == 1">
 					<import-data></import-data>
 				</template>
 
-				<template v-if=" $store.state.config.screen == 2">
+				<template v-if=" $store.config.screen == 2">
 					<players></players>
 				</template>
 
-				<template v-if="$store.state.config.screen == 3 && $store.state.scores.length > 0">
+				<template v-if="$store.config.screen == 3 && $store.scores.length > 0">
 					<scores></scores>
 				</template>
 
-				<template v-if="$store.state.config.screen == 5">
+				<template v-if="$store.config.screen == 5">
 					<watch-list></watch-list>
 				</template>
 
-				<template v-if="$store.state.config.screen == 6">
+				<template v-if="$store.config.screen == 6">
 					<my-team></my-team>
 				</template>
 
-				<template v-if="$store.state.config.screen == 4">
+				<template v-if="$store.config.screen == 4">
 					<config></config>
 				</template>
 
@@ -86,15 +86,15 @@
     export default {
         methods: {
         	changeScreen(newScreen) {
-        	    this.$store.dispatch('changeScreen', newScreen);
+        	    this.$store.changeScreen(newScreen);
 			}
 		},
         computed: {
             screen() {
-                return this.$store.state.config.screen;
+                return this.$store.config.screen;
             },
             navItems() {
-                const state = this.$store.state;
+                const state = this.$store;
                 const hasScores = state.scores.length > 0;
                 return [
                     { screen: 1, label: 'Import', icon: 'cloud', visible: true, active: this.screen == 1, done: state.players.length > 0, onClick: () => this.changeScreen(1) },
@@ -106,13 +106,13 @@
                 ];
             },
             myPlayers() {
-                return this.$store.getters.myPlayers;
+                return this.$store.myPlayers;
             },
 			takenPlayers() {
-                return this.$store.getters.takenPlayers;
+                return this.$store.takenPlayers;
             },
 			watchList() {
-                return this.$store.getters.watchList;
+                return this.$store.watchList;
             }
 		},
         components: {
