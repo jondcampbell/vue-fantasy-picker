@@ -5,6 +5,8 @@
             <p class="page-subtitle">Players you're keeping an eye on.</p>
         </header>
 
+        <list-issues list="watch_list"></list-issues>
+
         <div class="card p-4" v-if="filteredPlayers.length > 0">
             <player-summary :players="filteredPlayers"></player-summary>
         </div>
@@ -18,6 +20,7 @@
 <script>
     import PlayerTable from 'components/partials/PlayerTable.vue';
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
+    import ListIssues from 'components/partials/ListIssues.vue';
 
     export default {
         methods: {},
@@ -28,7 +31,8 @@
         },
         components: {
             PlayerTable,
-            PlayerSummary
+            PlayerSummary,
+            ListIssues
         }
     }
 </script>

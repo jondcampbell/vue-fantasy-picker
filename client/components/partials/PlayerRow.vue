@@ -1,7 +1,7 @@
 <template>
     <tr>
         <td class="pin left-0 w-28 min-w-28 py-0.5">
-            <list-toggles :playerId="playerId"></list-toggles>
+            <list-toggles :playerKey="playerKey"></list-toggles>
         </td>
         <td v-for="(value, index) in player" :key="index" :class="[columnClasses[index], { 'text-right': isNumeric(value) }]">{{ value }}</td>
     </tr>
@@ -22,8 +22,8 @@
             }
         },
         computed: {
-            playerId() {
-                return this.player[this.$store.config.id_column];
+            playerKey() {
+                return this.$store.rowKeys.get(this.player);
             }
         },
         components: {

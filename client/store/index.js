@@ -3,6 +3,7 @@ import { createPinia, defineStore } from 'pinia'
 import { roundFloat, meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns } from './scoring'
 import { persist } from './persist'
 import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots } from './roster'
+import { detectKeyColumn, detectTeamColumn, dedupeKey, computeKeys, reconcileKeys } from './identity'
 
 const defaultState = () => ({
 	config: {
@@ -15,6 +16,8 @@ const defaultState = () => ({
 		min_minutes_played: 8,
 		screen:1,
 		id_column:0,
+		// Stable player ID column (Basketball-Reference "Player-additional"), detected on import; null = match by name
+		key_column: null,
 		name_column:1,
 		negative_columns: [
 			27
@@ -65,14 +68,20 @@ const defaultState = () => ({
 	active_position: 'all',
 	active_filter: 'none',
 	search_text: '',
+	// Lists hold player keys (see client/store/identity.js) so they survive re-importing updated stats
 	my_team: [],
 	taken_players: [],
 	watch_list: [],
-	// player id -> extra positions the league allows beyond the CSV position
+	// player key -> extra positions the league allows beyond the CSV position
 	position_overrides: {},
 	// my team players parked in IR slots
-	ir_players: []
+	ir_players: [],
+	// player key -> display name, so list entries missing from new data can still be shown
+	list_names: {}
 });
+
+const PLAYER_LISTS = ['my_team', 'taken_players', 'watch_list'];
+export const LIST_LABELS = { my_team: 'My Team', taken_players: 'Taken', watch_list: 'Watch List' };
 
 const toNumber = function(value) {
 	if (value === '' || value === null || typeof value === 'undefined') return 0;
@@ -80,11 +89,9 @@ const toNumber = function(value) {
 	return isNaN(n) ? 0 : n;
 };
 
-// Look up full player rows for a list of player ids, skipping ids no longer in the data
-const playersForIds = function(state, ids) {
-	const idColumn = state.config.id_column;
-	const byId = new Map(state.players.map(player => [player[idColumn], player]));
-	return ids.map(id => byId.get(id)).filter(Boolean);
+// Look up full player rows for a list of player keys, skipping keys not in the current data
+const playersForKeys = function(keyRows, keys) {
+	return keys.map(key => keyRows.get(key)).filter(Boolean);
 };
 
 export const usePickerStore = defineStore('picker', {
@@ -104,36 +111,74 @@ export const usePickerStore = defineStore('picker', {
 			}
 		},
 
+		// Player identity: row -> key and key -> row for the current data
+		rowKeys: (state) => computeKeys(state.players, state.columns, state.config),
+		keyRows() {
+			const keyRows = new Map();
+			this.rowKeys.forEach((key, row) => keyRows.set(key, row));
+			return keyRows;
+		},
+
 		// Fast lookup sets for list membership
 		watchedSet: (state) => new Set(state.watch_list),
 		myTeamSet: (state) => new Set(state.my_team),
 		takenSet: (state) => new Set(state.taken_players),
 		isWatched() {
-			return (id) => this.watchedSet.has(parseInt(id));
+			return (key) => this.watchedSet.has(key);
 		},
 		isOnTeam() {
-			return (id) => this.myTeamSet.has(parseInt(id));
+			return (key) => this.myTeamSet.has(key);
 		},
 		isTaken() {
-			return (id) => this.takenSet.has(parseInt(id));
+			return (key) => this.takenSet.has(key);
+		},
+
+		// List entries whose player isn't in the current data: ambiguous (pick one) or missing
+		listIssues() {
+			if (this.players.length === 0) {
+				return [];
+			}
+			const config = this.config;
+			const teamColumn = detectTeamColumn(this.columns);
+			const keys = [...new Set(PLAYER_LISTS.flatMap(list => this[list]))].filter(key => !this.keyRows.has(key));
+			const results = reconcileKeys(keys, this.keyRows, this.list_names, config);
+			return keys.map(key => {
+				const result = results.get(key);
+				return {
+					key: key,
+					name: this.list_names[key] || key,
+					lists: PLAYER_LISTS.filter(list => this[list].includes(key)),
+					status: result.status === 'ambiguous' ? 'ambiguous' : 'missing',
+					candidates: (result.candidates || []).map(candidate => {
+						const row = this.keyRows.get(candidate);
+						return {
+							key: candidate,
+							name: row[config.name_column],
+							position: row[config.pos_column],
+							games: row[config.games_column],
+							team: teamColumn != null ? row[teamColumn] : ''
+						};
+					})
+				};
+			});
 		},
 
 		// My team with lineup eligibility and overall score, for roster slot assignment
-		rosterPlayers: (state) => {
-			const config = state.config;
-			const scoreById = new Map(state.scores.map(score => [score.playerId, score.scoreData.total]));
-			const ir = new Set(state.ir_players);
-			return playersForIds(state, state.my_team).map(player => {
-				const id = player[config.id_column];
+		rosterPlayers() {
+			const config = this.config;
+			const scoreByKey = new Map(this.scores.map(score => [score.playerKey, score.scoreData.total]));
+			const ir = new Set(this.ir_players);
+			return playersForKeys(this.keyRows, this.my_team).map(player => {
+				const key = this.rowKeys.get(player);
 				const position = player[config.pos_column];
-				const extra = state.position_overrides[id] || [];
+				const extra = this.position_overrides[key] || [];
 				return {
-					id: id,
+					key: key,
 					name: player[config.name_column],
 					position: position,
 					positions: POSITIONS.filter(p => p === position || extra.includes(p)),
-					score: scoreById.get(id),
-					ir: ir.has(id)
+					score: scoreByKey.get(key),
+					ir: ir.has(key)
 				};
 			});
 		},
@@ -144,21 +189,28 @@ export const usePickerStore = defineStore('picker', {
 			return openSlots(this.roster.assignments);
 		},
 
-		myPlayers: (state) => state.scores.length > 0 ? playersForIds(state, state.my_team) : [],
-		takenPlayers: (state) => state.scores.length > 0 ? playersForIds(state, state.taken_players) : [],
-		watchList: (state) => playersForIds(state, state.watch_list),
+		myPlayers() {
+			return this.scores.length > 0 ? playersForKeys(this.keyRows, this.my_team) : [];
+		},
+		takenPlayers() {
+			return this.scores.length > 0 ? playersForKeys(this.keyRows, this.taken_players) : [];
+		},
+		watchList() {
+			return playersForKeys(this.keyRows, this.watch_list);
+		},
 
 		// Raw player rows filtered by the active position, availability and search
-		filteredPlayers: (state) => {
+		filteredPlayers() {
+			const state = this;
 			let players = state.players;
 			const position_column = state.config.pos_column;
 			const name_column = state.config.name_column;
-			const id_column = state.config.id_column;
+			const rowKeys = this.rowKeys;
 
 			if (state.active_position !== 'all') {
 				players = players.filter(player => player[position_column] == state.active_position);
 			}
-			players = filterByAvailability(state, players, player => player[id_column]);
+			players = filterByAvailability(state, players, player => rowKeys.get(player));
 			if (state.search_text !== '') {
 				const needle = state.search_text.toLowerCase();
 				players = players.filter(player => player[name_column].toLowerCase().includes(needle));
@@ -177,7 +229,7 @@ export const usePickerStore = defineStore('picker', {
 				const needle = state.search_text.toLowerCase();
 				scores = scores.filter(p => p.playerName.toLowerCase().includes(needle));
 			}
-			return filterByAvailability(state, scores, p => p.playerId);
+			return filterByAvailability(state, scores, p => p.playerKey);
 		},
 		sortedFilteredPlayerScores() {
 			const category = this.active_category;
@@ -214,29 +266,40 @@ export const usePickerStore = defineStore('picker', {
 	},
 
 	actions: {
+		// Lists carry over: entries are matched to the new data by player key (see identity.js).
+		// Returns { ambiguous, missing } counts of list entries that need attention.
 		importPlayers(importData) {
-			this.resetLists();
 			this.columns = importData[0];
+			this.config.key_column = detectKeyColumn(this.columns);
 			this.setPlayers(importData.slice(1));
+			this.reconcileLists();
 			this.evaluatePlayers();
+			const issues = this.listIssues;
+			return {
+				ambiguous: issues.filter(issue => issue.status === 'ambiguous').length,
+				missing: issues.filter(issue => issue.status === 'missing').length
+			};
 		},
 		setPlayers(players) {
-			const nameColumn = this.config.name_column;
-			const idColumn = this.config.id_column;
+			const config = this.config;
+			const nameColumn = config.name_column;
 			const gamesCol = this.config.games_column;
 			const minutesCol = this.config.minutes_column;
 			const keyCols = this.config.key_columns;
 			const totalCols = this.config.yearly_total_columns;
 			let cleanPlayers = [];
-			const seenIds = new Set();
+			const seen = new Set();
 			players.forEach(function(player) {
 
-				// Normalize id to number early
-				const normalizedId = parseInt(player[idColumn]);
+				// Skip blank lines (e.g. a trailing newline in the CSV)
+				if (!player[nameColumn]) {
+					return;
+				}
 
 				// The same player can appear on several rows (e.g. traded); keep the first
-				if(!seenIds.has(normalizedId)){
-					seenIds.add(normalizedId);
+				const identity = dedupeKey(player, config);
+				if(!seen.has(identity)){
+					seen.add(identity);
 
 					// Fix player names: only trim if a backslash exists, otherwise keep as-is
 					let name = player[nameColumn];
@@ -248,7 +311,6 @@ export const usePickerStore = defineStore('picker', {
 					}
 
 					// Coerce core numeric fields once
-					player[idColumn] = normalizedId;
 					player[gamesCol] = toNumber(player[gamesCol]);
 					player[minutesCol] = toNumber(player[minutesCol]);
 					// Coerce key and totals columns to numbers
@@ -283,44 +345,95 @@ export const usePickerStore = defineStore('picker', {
 		changeSearchText(search_text) {
 			this.search_text = search_text;
 		},
-		addToList({ list, player_id }) {
-			const id = parseInt(player_id);
-			if (!this[list].includes(id)) {
-				this[list].push(id);
+		addToList({ list, key }) {
+			if (!this[list].includes(key)) {
+				this[list] = [...this[list], key];
+			}
+			const row = this.keyRows.get(key);
+			if (row) {
+				this.list_names = { ...this.list_names, [key]: row[this.config.name_column] };
 			}
 		},
-		removeFromList({ list, player_id }) {
-			const id = parseInt(player_id);
-			this[list] = this[list].filter(player => player !== id);
+		removeFromList({ list, key }) {
+			this[list] = this[list].filter(entry => entry !== key);
 			if (list === 'my_team') {
-				this.ir_players = this.ir_players.filter(player => player !== id);
+				this.ir_players = this.ir_players.filter(entry => entry !== key);
+				const overrides = { ...this.position_overrides };
+				delete overrides[key];
+				this.position_overrides = overrides;
 			}
+			this.forgetUnusedNames();
 		},
-		resetLists() {
-			this.taken_players = [];
-			this.my_team = [];
-			this.watch_list = [];
-			this.position_overrides = {};
-			this.ir_players = [];
+		// Remove a player from every list (e.g. one who is no longer in the data)
+		dropListEntry(key) {
+			PLAYER_LISTS.forEach(list => this.removeFromList({ list, key }));
+		},
+		// Point a list entry at a different player key everywhere it is used
+		renameListKey(oldKey, newKey) {
+			if (oldKey === newKey) {
+				return;
+			}
+			const swap = keys => [...new Set(keys.map(key => (key === oldKey ? newKey : key)))];
+			PLAYER_LISTS.forEach(list => { this[list] = swap(this[list]); });
+			this.ir_players = swap(this.ir_players);
+			const overrides = { ...this.position_overrides };
+			if (overrides[oldKey]) {
+				overrides[newKey] = overrides[oldKey];
+				delete overrides[oldKey];
+			}
+			this.position_overrides = overrides;
+			const row = this.keyRows.get(newKey);
+			this.list_names = { ...this.list_names, [newKey]: row ? row[this.config.name_column] : this.list_names[oldKey] };
+			this.forgetUnusedNames();
+		},
+		// Match list entries to the current data: move entries whose player is found under a new key,
+		// refresh remembered names; ambiguous and missing entries are left for listIssues to show
+		reconcileLists() {
+			if (this.players.length === 0) {
+				return;
+			}
+			const keys = [...new Set([...PLAYER_LISTS.flatMap(list => this[list]), ...this.ir_players])];
+			const results = reconcileKeys(keys, this.keyRows, this.list_names, this.config);
+			results.forEach((result, key) => {
+				if (result.status === 'moved') {
+					this.renameListKey(key, result.key);
+				}
+			});
+			const names = { ...this.list_names };
+			PLAYER_LISTS.flatMap(list => this[list]).forEach(key => {
+				const row = this.keyRows.get(key);
+				if (row) {
+					names[key] = row[this.config.name_column];
+				}
+			});
+			this.list_names = names;
+		},
+		forgetUnusedNames() {
+			const used = new Set(PLAYER_LISTS.flatMap(list => this[list]));
+			const names = {};
+			Object.keys(this.list_names).forEach(key => {
+				if (used.has(key)) {
+					names[key] = this.list_names[key];
+				}
+			});
+			this.list_names = names;
 		},
 		// Add or remove an extra position the league lets this player fill
-		togglePositionOverride({ player_id, position }) {
-			const id = parseInt(player_id);
-			const current = this.position_overrides[id] || [];
+		togglePositionOverride({ key, position }) {
+			const current = this.position_overrides[key] || [];
 			const next = current.includes(position) ? current.filter(p => p !== position) : [...current, position];
 			const overrides = { ...this.position_overrides };
 			if (next.length > 0) {
-				overrides[id] = next;
+				overrides[key] = next;
 			} else {
-				delete overrides[id];
+				delete overrides[key];
 			}
 			this.position_overrides = overrides;
 		},
-		toggleIr(player_id) {
-			const id = parseInt(player_id);
-			this.ir_players = this.ir_players.includes(id)
-				? this.ir_players.filter(player => player !== id)
-				: [...this.ir_players, id];
+		toggleIr(key) {
+			this.ir_players = this.ir_players.includes(key)
+				? this.ir_players.filter(entry => entry !== key)
+				: [...this.ir_players, key];
 		},
 		// Every setting change re-scores immediately (evaluating takes a few tens of ms)
 		changeConfigSetting({ config_key, config_value }) {
@@ -343,11 +456,12 @@ export const usePickerStore = defineStore('picker', {
 			}
 
 			// Score each player who has played at least the minimum games and minutes
+			const rowKeys = this.rowKeys;
 			this.scores = markRaw(this.players.filter(player => meetsMinimums(player, config)).map(player => {
 				const scoreData = playerRanking(player, config, averages);
 				scoreData.aboveAverage = countAboveAverage(scoreData, config.key_columns);
 				return {
-					playerId: player[config.id_column],
+					playerKey: rowKeys.get(player),
 					scoreData: scoreData,
 					playerName: player[config.name_column],
 					playerPosition: player[config.pos_column],
@@ -391,6 +505,7 @@ export const useStore = function() {
 		markRowsRaw(store);
 		// Re-score saved players so scores always match the current scoring logic and settings
 		if (store.players.length > 0) {
+			store.reconcileLists();
 			store.evaluatePlayers();
 		}
 	}

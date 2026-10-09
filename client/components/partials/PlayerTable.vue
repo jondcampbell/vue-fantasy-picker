@@ -10,7 +10,7 @@
             <tbody>
                 <player-row
                 v-for="(player, index) in limitRows(players)"
-                :key="player[$store.config.id_column]"
+                :key="$store.rowKeys.get(player)"
                 :player="player"
                 :columnClasses="columnClasses"
                 :index="index"></player-row>

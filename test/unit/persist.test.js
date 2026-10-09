@@ -22,11 +22,11 @@ describe('restoreState', () => {
 	});
 
 	it('replaces saved arrays wholesale instead of merging by index', () => {
-		const saved = { config: { key_columns: [9], yearly_total_columns: [3, 4, 5], ranking_only_columns: [] }, my_team: [7] };
+		const saved = { config: { key_columns: [9], yearly_total_columns: [3, 4, 5], ranking_only_columns: [], key_column: null }, my_team: ['abc01'] };
 		const state = restoreState(defaults(), saved);
 		expect(state.config.key_columns).toEqual([9]);
 		expect(state.config.ranking_only_columns).toEqual([]);
-		expect(state.my_team).toEqual([7]);
+		expect(state.my_team).toEqual(['abc01']);
 	});
 
 	it('fills settings missing from saved state with defaults', () => {
@@ -45,19 +45,19 @@ describe('restoreState', () => {
 
 	it('migrates pre-ranking-only state: adds the per-game conversion and converts loaded players', () => {
 		const saved = {
-			config: { games_column: 2, key_columns: [5], yearly_total_columns: [5] },
+			config: { games_column: 2, key_columns: [5], yearly_total_columns: [5], key_column: null },
 			players: [
 				[1, 'A', 20, '40', '30', 25],
 				[2, 'B', 0, '5', '1', 0]
 			],
-			my_team: [1]
+			my_team: ['abc01']
 		};
 		const state = restoreState(defaults(), saved);
 		expect(state.config.yearly_total_columns).toEqual([5, 3, 4]);
 		expect(state.config.ranking_only_columns).toEqual([3, 4]);
 		expect(state.players[0]).toEqual([1, 'A', 20, 2, 1.5, 25]);
 		expect(state.players[1]).toEqual([2, 'B', 0, 0, 0, 0]);
-		expect(state.my_team).toEqual([1]);
+		expect(state.my_team).toEqual(['abc01']);
 		// Saved player arrays are not mutated
 		expect(saved.players[0][3]).toBe('40');
 	});

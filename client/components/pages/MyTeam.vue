@@ -5,6 +5,8 @@
             <p class="page-subtitle">Your lineup is filled automatically: best scores start, the rest go to the bench. Slots are set in Configure.</p>
         </header>
 
+        <list-issues list="my_team"></list-issues>
+
         <roster-card v-if="$store.my_team.length > 0"></roster-card>
 
         <div class="card p-4" v-if="filteredPlayers.length > 0">
@@ -21,6 +23,7 @@
 <script>
     import PlayerTable from 'components/partials/PlayerTable.vue';
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
+    import ListIssues from 'components/partials/ListIssues.vue';
     import RosterCard from 'components/partials/RosterCard.vue';
 
     export default {
@@ -33,6 +36,7 @@
         components: {
             PlayerTable,
             PlayerSummary,
+            ListIssues,
             RosterCard
         }
     }

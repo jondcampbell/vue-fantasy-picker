@@ -29,7 +29,7 @@
 							<span class="chip text-warn" v-for="open in $store.openRosterSlots" :key="open.slot" :title="`Open roster slot: ${open.slot}`">{{ open.slot }}<template v-if="open.count > 1"> ×{{ open.count }}</template></span>
 						</div>
 						<ul class="space-y-0.5 text-sm">
-							<li v-for="player in myPlayers" :key="player[$store.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
+							<li v-for="player in myPlayers" :key="$store.rowKeys.get(player)" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
 								<span class="truncate">{{ player[$store.config.name_column] }}</span>
 								<span class="chip">{{ player[$store.config.pos_column] }}</span>
 							</li>
@@ -39,7 +39,7 @@
 					<section v-if="takenPlayers.length > 0">
 						<h3 class="label flex items-center gap-1.5"><span class="size-2 rounded-full bg-bad"></span>Taken · {{ takenPlayers.length }}</h3>
 						<ul class="space-y-0.5 text-sm text-muted">
-							<li v-for="player in takenPlayers" :key="player[$store.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
+							<li v-for="player in takenPlayers" :key="$store.rowKeys.get(player)" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
 								<span class="truncate">{{ player[$store.config.name_column] }}</span>
 								<span class="chip">{{ player[$store.config.pos_column] }}</span>
 							</li>

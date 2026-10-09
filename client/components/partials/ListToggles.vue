@@ -14,20 +14,20 @@
 <script>
     export default {
         props: [
-            'playerId'
+            'playerKey'
         ],
         methods: {
             toggleList(list, isOn) {
-                this.$store[isOn ? 'removeFromList' : 'addToList']({ list: list, player_id: this.playerId });
+                this.$store[isOn ? 'removeFromList' : 'addToList']({ list: list, key: this.playerKey });
             }
         },
         computed: {
             toggles() {
                 const store = this.$store;
                 return [
-                    { list: 'watch_list', icon: 'binoculars', on: store.isWatched(this.playerId), onClass: 'text-accent', onTitle: 'Add to watch list', offTitle: 'Remove from watch list' },
-                    { list: 'my_team', icon: 'users', on: store.isOnTeam(this.playerId), onClass: 'text-good', onTitle: 'Add to my team', offTitle: 'Remove from my team' },
-                    { list: 'taken_players', icon: 'exclamation', on: store.isTaken(this.playerId), onClass: 'text-bad', onTitle: 'Mark as taken', offTitle: 'Mark as available' }
+                    { list: 'watch_list', icon: 'binoculars', on: store.isWatched(this.playerKey), onClass: 'text-accent', onTitle: 'Add to watch list', offTitle: 'Remove from watch list' },
+                    { list: 'my_team', icon: 'users', on: store.isOnTeam(this.playerKey), onClass: 'text-good', onTitle: 'Add to my team', offTitle: 'Remove from my team' },
+                    { list: 'taken_players', icon: 'exclamation', on: store.isTaken(this.playerKey), onClass: 'text-bad', onTitle: 'Mark as taken', offTitle: 'Mark as available' }
                 ];
             }
         }

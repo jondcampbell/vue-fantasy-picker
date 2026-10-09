@@ -2,7 +2,7 @@
     <div class="max-w-2xl space-y-5">
         <header>
             <h2 class="page-title">Import</h2>
-            <p class="page-subtitle">Load a season stats CSV. The first row must be the column headers. Importing clears your team, taken and watch lists.</p>
+            <p class="page-subtitle">Load a season stats CSV. The first row must be the column headers. Your team, taken and watch lists carry over to the new data.</p>
         </header>
 
         <label
@@ -28,13 +28,20 @@
                 <icon name="upload"></icon> Import
             </button>
         </div>
+
+        <list-issues></list-issues>
     </div>
 </template>
 
 <script>
     import papaparse from 'papaparse';
     import Swal from 'sweetalert2';
+    import ListIssues from 'components/partials/ListIssues.vue';
+
     export default {
+        components: {
+            ListIssues
+        },
         data: function () {
             return {
                 hasFiles: false,
@@ -55,11 +62,16 @@
                 fr.onload = function (e) {
                     papaparse.parse(e.target.result, {
                         complete: function(results) {
-                            vuethis.$store.importPlayers(results.data);
+                            const issues = vuethis.$store.importPlayers(results.data);
                             vuethis.$refs.fileInput.value = '';
                             vuethis.hasFiles = false;
                             vuethis.fileName = '';
-                            Swal.fire("Woot!", "We imported your players", "success");
+                            const attention = issues.ambiguous + issues.missing;
+                            if (attention > 0) {
+                                Swal.fire("Imported", `${attention} list ${attention === 1 ? 'entry needs' : 'entries need'} attention: see below.`, "warning");
+                            } else {
+                                Swal.fire("Woot!", "We imported your players", "success");
+                            }
                         }
                     });
                 }

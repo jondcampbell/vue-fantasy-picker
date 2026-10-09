@@ -93,14 +93,14 @@ describe('UI smoke test', () => {
 		expect(wrapper.find('th[aria-sort="descending"]').text()).toBe('TOV*');
 		// Turnovers: fewer is better, so the top-ranked player has the lowest per-game TOV
 		const ranked = store.sortedFilteredPlayerScores;
-		const perGame = id => store.players.find(p => p[0] === id)[tovIndex];
-		expect(perGame(ranked[0].playerId)).toBeLessThanOrEqual(perGame(ranked[ranked.length - 1].playerId));
+		const perGame = key => store.keyRows.get(key)[tovIndex];
+		expect(perGame(ranked[0].playerKey)).toBeLessThanOrEqual(perGame(ranked[ranked.length - 1].playerKey));
 		expect(store.scores.map(p => p.scoreData.total)).toEqual(totalsBefore);
 		await store.changeActiveCategory('total');
 	});
 
 	it('toggles a player onto my team from the table', async () => {
-		const firstId = store.sortedFilteredPlayerScores[0].playerId;
+		const firstId = store.sortedFilteredPlayerScores[0].playerKey;
 		await wrapper.find('tbody tr button[title="Add to my team"]').trigger('click');
 		expect(store.my_team).toContain(firstId);
 		await showScreen(6);
@@ -121,7 +121,7 @@ describe('UI smoke test', () => {
 		// Mark them eligible at another position, then move them to IR
 		const other = ['PG', 'SG', 'SF', 'PF', 'C'].find(position => position !== player.position);
 		await rowFor(player.name).findAll('button').find(b => b.text() === other).trigger('click');
-		expect(store.position_overrides[player.id]).toEqual([other]);
+		expect(store.position_overrides[player.key]).toEqual([other]);
 		expect(store.rosterPlayers[0].positions).toContain(other);
 
 		await rowFor(player.name).findAll('button').find(b => b.text() === 'IR').trigger('click');

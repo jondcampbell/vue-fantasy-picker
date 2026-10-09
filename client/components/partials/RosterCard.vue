@@ -35,7 +35,7 @@
                                         :disabled="position == row.player.position"
                                         :aria-pressed="row.player.positions.includes(position)"
                                         :title="position == row.player.position ? 'Position from the CSV' : `Eligible at ${position} in my league`"
-                                        @click="$store.togglePositionOverride({ player_id: row.player.id, position: position })">{{ position }}</button>
+                                        @click="$store.togglePositionOverride({ key: row.player.key, position: position })">{{ position }}</button>
                                 </div>
                             </td>
                             <td class="py-0.5 text-center">
@@ -44,7 +44,7 @@
                                     :class="row.player.ir ? 'bg-bad/15 text-bad' : 'text-muted/60 hover:bg-surface-2 hover:text-fg'"
                                     :aria-pressed="row.player.ir"
                                     :title="row.player.ir ? 'Move off IR' : 'Move to IR'"
-                                    @click="$store.toggleIr(row.player.id)">IR</button>
+                                    @click="$store.toggleIr(row.player.key)">IR</button>
                             </td>
                             <td class="text-right font-semibold" :class="scoreClass(row.player.score)">{{ formatScore(row.player.score) }}</td>
                         </template>

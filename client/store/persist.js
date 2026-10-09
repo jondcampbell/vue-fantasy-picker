@@ -2,6 +2,7 @@
 // Saved values replace defaults wholesale; settings missing from saved state fall back to defaults.
 
 import { roundFloat } from './scoring'
+import { detectKeyColumn, computeKeys } from './identity'
 
 export const STORAGE_KEY = 'vuex';
 
@@ -42,7 +43,46 @@ export const restoreState = function(defaults, saved) {
 		}
 	}
 
+	// Saved before stable player keys: detect the ID column and convert lists from CSV rank numbers to keys
+	if (saved.config && !('key_column' in saved.config)) {
+		migrateListsToKeys(state);
+	}
+
 	return state;
+};
+
+const migrateListsToKeys = function(state) {
+	const config = state.config;
+	const columns = state.columns || [];
+	const players = state.players || [];
+	config.key_column = detectKeyColumn(columns);
+
+	// Old lists stored row[id_column] (the CSV rank, coerced to a number)
+	const keyForId = new Map();
+	computeKeys(players, columns, config).forEach((key, row) => {
+		keyForId.set(Number(row[config.id_column]), { key, name: row[config.name_column] });
+	});
+	const names = {};
+	const convert = function(ids) {
+		return (ids || []).map(id => keyForId.get(Number(id))).filter(Boolean).map(({ key, name }) => {
+			names[key] = name;
+			return key;
+		});
+	};
+
+	state.my_team = convert(state.my_team);
+	state.taken_players = convert(state.taken_players);
+	state.watch_list = convert(state.watch_list);
+	state.ir_players = convert(state.ir_players);
+	const overrides = {};
+	Object.entries(state.position_overrides || {}).forEach(([id, positions]) => {
+		const match = keyForId.get(Number(id));
+		if (match) {
+			overrides[match.key] = positions;
+		}
+	});
+	state.position_overrides = overrides;
+	state.list_names = names;
 };
 
 const readSaved = function() {

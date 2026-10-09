@@ -2,7 +2,7 @@
     <tr>
         <td class="pin left-0 w-12 min-w-12 text-right text-muted">{{ rank }}</td>
         <td class="pin left-12 w-28 min-w-28 py-0.5">
-            <list-toggles :playerId="playerId"></list-toggles>
+            <list-toggles :playerKey="playerKey"></list-toggles>
         </td>
         <td class="pin left-40 font-medium">{{ playerName }}</td>
         <td class="text-right">{{ playerGames }}</td>
@@ -18,7 +18,7 @@
         props: [
             'rank',
             'scoreData',
-            'playerId',
+            'playerKey',
             'playerName',
             'playerPosition',
             'playerGames',

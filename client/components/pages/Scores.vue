@@ -47,12 +47,12 @@
                     <tbody>
                         <score-row
                         v-for="(scoreItem, index) in limitRows(filteredPlayers)"
-                        :key="scoreItem.playerId"
+                        :key="scoreItem.playerKey"
                         :rank="index + 1"
                         :bestScores="bestScores"
                         :worstScores="worstScores"
                         :scoreData="scoreItem.scoreData"
-                        :playerId="scoreItem.playerId"
+                        :playerKey="scoreItem.playerKey"
                         :playerName="scoreItem.playerName"
                         :playerPosition="scoreItem.playerPosition"
                         :playerGames="scoreItem.playerGames"
