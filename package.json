@@ -8,6 +8,7 @@
     "build": "vite build",
     "dev": "vite",
     "preview": "vite preview",
+    "test:unit": "vitest run",
     "lint": "xo **/client/**/*.{vue,js} !node_modules/**"
   },
   "author": "Jon Campbell <lifeislearning@gmail.com>",
@@ -68,6 +69,7 @@
     "sass": "^1.69.0",
     "testcafe": "^0.12.1",
     "vite": "^5.4.0",
+    "vitest": "^3.2.7",
     "xo": "^0.18.0"
   }
 }

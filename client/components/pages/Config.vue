@@ -8,7 +8,8 @@
                     <div class="form-group">
                         Average Mode:
                         <select class="form-control" v-bind:value="average_mode" v-on:change="changeAverageMode">
-                            <option value="1">Default</option>
+                            <option value="1">Mean</option>
+                            <option value="2">Median</option>
                         </select>
                     </div>
                     <div class="form-group">

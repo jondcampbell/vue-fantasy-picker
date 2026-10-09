@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
 import VuexPersistence from 'vuex-persist'
+import { roundFloat, meetsMinimums, categoryAverage, playerRanking, countAboveAverage } from './scoring'
 
 const state = {
 	config: {
@@ -156,7 +157,7 @@ const mutations = {
 		state.config[config_key] = config_value;
 	},
 	ADD_TO_LIST(state, {list, player_id}) {
-		if( ! findPlayerIndexInList( state[list], player_id ) ) {
+		if( findPlayerIndexInList( state[list], player_id ) === false ) {
 			state[list].push(player_id);
 		}
 	},
@@ -242,10 +243,8 @@ const actions = {
 
 		// Loop through each player
 		state.players.forEach(function(player,index) {
-			// If the player has played at least the minimum games number
-			const meets_min_games = player[state.config.games_column] >= state.config.min_games_played;
-			const meets_min_minutes = (player[state.config.minutes_column] / player[state.config.games_column]) >= state.config.min_minutes_played;
-			if (meets_min_games && meets_min_minutes) {
+			// If the player has played at least the minimum games and minutes
+			if (meetsMinimums(player, state.config)) {
 				dispatch('scorePlayer', player);
 			}
 		})
@@ -287,119 +286,17 @@ const actions = {
 };
 
 const getters = {
-	relativePlayerRankingForCat: (state, getters) => (player, category) => {
-
-		let playerValue = player[category];
-
-		if (player[category] == '') {
-			playerValue = 0;
-		}
-
-		if (state.config.negative_columns.indexOf(category) >= 0) {
-			playerValue = -playerValue;
-		}
-		return roundFloat(parseFloat(playerValue) / parseFloat(state.column_averages[category]), 4);
+	relativePlayerRanking: (state) => (player) => {
+		return playerRanking(player, state.config, state.column_averages);
 	},
-	relativePlayerRanking: (state, getters) => (player) => {
-		let rankings = {};
-
-		let rankingsSum = 0;
-		// For each key category
-		state.config.key_columns.forEach(function(column,index) {
-
-			// Get the players rankings
-			let columnScore = getters.relativePlayerRankingForCat(player, column);
-			rankings[column] = columnScore;
-			rankingsSum = rankingsSum + columnScore;
-		});
-		let rankingsAverage = rankingsSum / state.config.key_columns.length;
-
-		rankings.total = roundFloat(rankingsAverage, 4);
-		return rankings;
-	},
-	countAboveAverageRanks: (state,getters) => (scores) => {
-		let aboveAverageCount = 0;
-
-		state.config.key_columns.forEach(function(keyColumn,index) {
-			let categoryAverage = state.column_averages[keyColumn];
-
-			if (scores[keyColumn] > categoryAverage) {
-				aboveAverageCount++;
-			}
-		});
-		return aboveAverageCount;
+	countAboveAverageRanks: (state) => (scores) => {
+		return countAboveAverage(scores, state.config.key_columns);
 	},
 	getPlayerGroupSize: (state) => {
-		let teams = state.config.teams_in_league;
-		let playersPerTeam = state.config.players_per_team;
-
-		return teams * playersPerTeam;
+		return state.config.teams_in_league * state.config.players_per_team;
 	},
-	categoryAverage: (state, getters) => (category) => {
-
-		let sortedPlayers = [];
-
-		// Check if the category should be sorted negative
-		if (state.config.negative_columns.includes(category)) {
-			// Get the top players in this negative category
-			sortedPlayers = state.players.slice().sort(function(a, b) {
-				return a[category] - b[category];
-			});
-		} else {
-			// Get the top players in this positive category
-			sortedPlayers = state.players.slice().sort(function(a, b) {
-				return b[category] - a[category];
-			});
-		}
-
-		let validPlayers = state.players.filter(function(player) {
-			// Check if this player has played enough games and minutes
-			const meets_min_games = player[state.config.games_column] >= state.config.min_games_played;
-			const meets_min_minutes = (player[state.config.minutes_column] / player[state.config.games_column]) >= state.config.min_minutes_played;
-			return meets_min_games && meets_min_minutes;
-		});
-
-		sortedPlayers = validPlayers.sort(function(a, b) {
-			if (state.config.negative_columns.includes(category)) {
-				return a[category] - b[category];
-			} else {
-				return b[category] - a[category];
-			}
-		});
-
-
-		// Determine the pool size for averaging
-		let pool = state.config.average_pool_size;
-		let numberOfPlayers;
-		if (typeof pool === 'number') {
-			numberOfPlayers = pool;
-		} else if (pool === 'all') {
-			numberOfPlayers = sortedPlayers.length;
-		} else {
-			// Fallback to legacy behavior if not set
-			numberOfPlayers = parseInt(getters.getPlayerGroupSize);
-		}
-		
-		// Ensure we don't exceed available players
-		numberOfPlayers = Math.min(numberOfPlayers, sortedPlayers.length);
-		let bestPlayers = sortedPlayers.slice(0, numberOfPlayers);
-
-
-		let categorySum = 0
-		bestPlayers.forEach(function(player,index) {
-			let playerValue = player[category];
-			if (player[category] == '') {
-				playerValue = 0;
-			}
-			categorySum = parseFloat(categorySum) + parseFloat(playerValue);
-		});
-
-		let categoryAverage = categorySum / bestPlayers.length;
-
-		// Round the number to 4 decimals
-		categoryAverage = roundFloat(categoryAverage, 4);
-
-		return categoryAverage;
+	categoryAverage: (state) => (category) => {
+		return categoryAverage(state.players, category, state.config);
 	},
 	sortedFilteredPlayerScores: (state, getters) => {
 		// Make a copy of the array
@@ -689,10 +586,6 @@ const store = createStore({
 	getters,
 	plugins: [(new VuexPersistence()).plugin]
 });
-
-const roundFloat = function(value, decimals) {
-	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
-};
 
 const toNumber = function(value) {
 	if (value === '' || value === null || typeof value === 'undefined') return 0;
