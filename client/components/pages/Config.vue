@@ -2,7 +2,7 @@
     <div class="space-y-5">
         <header>
             <h2 class="page-title">Configure</h2>
-            <p class="page-subtitle">Changes apply the next time you click <span class="font-medium text-fg">Evaluate Players</span>.</p>
+            <p class="page-subtitle">Changes re-score players immediately.</p>
         </header>
 
         <form class="grid gap-5 lg:grid-cols-2" @submit.prevent>
@@ -29,23 +29,23 @@
                     </label>
                     <label>
                         <span class="label">Teams in League</span>
-                        <input class="field" type="number" v-bind:value="teams_in_league" v-on:input="changeTeamsInLeague"/>
+                        <input class="field" type="number" min="1" step="1" :value="teams_in_league" @input="setNumber('teams_in_league', 1, $event)" @blur="resetNumber('teams_in_league', $event)"/>
                     </label>
                     <label>
                         <span class="label">Players per Team</span>
-                        <input class="field" type="number" v-bind:value="players_per_team" v-on:input="changePlayersPerTeam"/>
+                        <input class="field" type="number" min="1" step="1" :value="players_per_team" @input="setNumber('players_per_team', 1, $event)" @blur="resetNumber('players_per_team', $event)"/>
                     </label>
                     <label>
                         <span class="label">Top Players</span>
-                        <input class="field" type="number" v-bind:value="top_players" v-on:input="changeTopPlayers"/>
+                        <input class="field" type="number" min="1" step="1" :value="top_players" @input="setNumber('top_players', 1, $event)" @blur="resetNumber('top_players', $event)"/>
                     </label>
                     <label>
                         <span class="label">Minimum Games Played</span>
-                        <input class="field" type="number" v-bind:value="min_games_played" v-on:input="changeMinGamesPlayed"/>
+                        <input class="field" type="number" min="0" step="1" :value="min_games_played" @input="setNumber('min_games_played', 0, $event)" @blur="resetNumber('min_games_played', $event)"/>
                     </label>
                     <label>
                         <span class="label">Minimum Minutes per Game</span>
-                        <input class="field" type="number" v-bind:value="min_minutes_played" v-on:input="changeMinMinutesPlayed"/>
+                        <input class="field" type="number" min="0" step="1" :value="min_minutes_played" @input="setNumber('min_minutes_played', 0, $event)" @blur="resetNumber('min_minutes_played', $event)"/>
                     </label>
                 </div>
 
@@ -55,6 +55,13 @@
                         <span class="chip" v-for="position in $store.config.positions" :key="position">{{ position }}</span>
                     </div>
                 </div>
+
+                <label class="block">
+                    <span class="label">Roster Slots</span>
+                    <input class="field" type="text" v-model="rosterSlotsText" @change="saveRosterSlots" :aria-invalid="rosterSlotsError ? 'true' : 'false'"/>
+                    <p class="help text-bad" v-if="rosterSlotsError">{{ rosterSlotsError }}</p>
+                    <p class="help" v-else>Comma-separated, in lineup order. Use {{ slotTypes }}.</p>
+                </label>
             </section>
 
             <section class="card space-y-4 p-5">
@@ -117,7 +124,7 @@
                             <select class="field" size="10" multiple v-model="yearlyTotalColumnsModel">
                                 <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                             </select>
-                            <p class="help">Converted to per-game on import.</p>
+                            <p class="help">Converted to per-game on import, so changes here need a re-import.</p>
                         </label>
                     </div>
                     <p class="help">Hold ⌘ (or Ctrl) to select multiple columns.</p>
@@ -130,9 +137,40 @@
 <script>
     import { mapState } from 'pinia';
     import { usePickerStore } from 'store';
+    import { parseSlots, SLOT_TYPES } from 'store/roster';
 
     export default {
+        data() {
+            return {
+                rosterSlotsText: this.$store.config.roster_slots.join(', '),
+                rosterSlotsError: '',
+                slotTypes: SLOT_TYPES.join(', ')
+            };
+        },
         methods: {
+            saveRosterSlots: function() {
+                const { slots, invalid } = parseSlots(this.rosterSlotsText);
+                if (invalid.length > 0) {
+                    this.rosterSlotsError = `Unknown slot: ${invalid.join(', ')}. Use ${this.slotTypes}.`;
+                } else if (slots.length === 0) {
+                    this.rosterSlotsError = 'Add at least one slot.';
+                } else {
+                    this.rosterSlotsError = '';
+                    this.$store.changeConfigSetting({ config_key: 'roster_slots', config_value: slots });
+                    this.rosterSlotsText = slots.join(', ');
+                }
+            },
+            // Only save whole numbers at or above the minimum; ignore empty or invalid input while typing
+            setNumber: function(key, min, e) {
+                const value = Number(e.target.value);
+                if (e.target.value !== '' && Number.isInteger(value) && value >= min) {
+                    this.$store.changeConfigSetting({ config_key: key, config_value: value });
+                }
+            },
+            // On leaving the field, show the saved value again if the input was rejected
+            resetNumber: function(key, e) {
+                e.target.value = this.$store.config[key];
+            },
             changeAverageMode: function(e) {
                 this.$store.changeConfigSetting({ config_key: 'average_mode', config_value: parseInt(e.target.value) });
             },
@@ -140,21 +178,6 @@
                 const raw = e.target.value;
                 const value = raw === 'all' ? 'all' : parseInt(raw);
                 this.$store.changeConfigSetting({ config_key: 'average_pool_size', config_value: value });
-            },
-            changeTeamsInLeague: function(e) {
-                this.$store.changeConfigSetting({ config_key: 'teams_in_league', config_value: parseInt(e.target.value) });
-            },
-            changePlayersPerTeam: function(e) {
-                this.$store.changeConfigSetting({ config_key: 'players_per_team', config_value: parseInt(e.target.value) });
-            },
-            changeTopPlayers: function(e) {
-                this.$store.changeConfigSetting({ config_key: 'top_players', config_value: parseInt(e.target.value) });
-            },
-            changeMinGamesPlayed: function(e) {
-                this.$store.changeConfigSetting({ config_key: 'min_games_played', config_value: parseInt(e.target.value) });
-            },
-            changeMinMinutesPlayed: function(e) {
-                this.$store.changeConfigSetting({ config_key: 'min_minutes_played', config_value: parseInt(e.target.value) });
             },
             changeNameColumn: function(value) {
                 this.$store.changeConfigSetting({ config_key: 'name_column', config_value: value });

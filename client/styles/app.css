@@ -4,36 +4,28 @@
 /*
  * Semantic color tokens. Components use these (bg-surface, text-muted, border-line...)
  * so light/dark switching happens here instead of with dark: variants everywhere.
+ * Each token is light-dark(<light>, <dark>); color-scheme picks the side:
+ * the OS setting by default, or forced by data-theme="light|dark" on <html> (ThemeToggle).
  */
 :root {
 	color-scheme: light dark;
-	--canvas: #f8fafc;
-	--surface: #ffffff;
-	--surface-2: #f1f5f9;
-	--line: #e2e8f0;
-	--fg: #0f172a;
-	--muted: #64748b;
-	--accent: #059669;
-	--accent-fg: #ffffff;
-	--good: #16a34a;
-	--bad: #dc2626;
-	--warn: #d97706;
+	--canvas: light-dark(#f8fafc, #020617);
+	--surface: light-dark(#ffffff, #0f172a);
+	--surface-2: light-dark(#f1f5f9, #1e293b);
+	--line: light-dark(#e2e8f0, #1e293b);
+	--fg: light-dark(#0f172a, #e2e8f0);
+	--muted: light-dark(#64748b, #94a3b8);
+	--accent: light-dark(#059669, #34d399);
+	--accent-fg: light-dark(#ffffff, #022c22);
+	--good: light-dark(#16a34a, #4ade80);
+	--bad: light-dark(#dc2626, #f87171);
+	--warn: light-dark(#d97706, #fbbf24);
 }
-
-@media (prefers-color-scheme: dark) {
-	:root {
-		--canvas: #020617;
-		--surface: #0f172a;
-		--surface-2: #1e293b;
-		--line: #1e293b;
-		--fg: #e2e8f0;
-		--muted: #94a3b8;
-		--accent: #34d399;
-		--accent-fg: #022c22;
-		--good: #4ade80;
-		--bad: #f87171;
-		--warn: #fbbf24;
-	}
+:root[data-theme="light"] {
+	color-scheme: light;
+}
+:root[data-theme="dark"] {
+	color-scheme: dark;
 }
 
 @theme inline {
@@ -157,6 +149,10 @@
 	.sort-header-active svg,
 	.sort-header-active:hover svg {
 		@apply opacity-100;
+	}
+	/* Separates starters from bench in the roster table */
+	.data-table tr.roster-divider td {
+		@apply border-t-2 border-t-line;
 	}
 	/* Pinned columns stay visible while scrolling sideways */
 	.data-table .pin {

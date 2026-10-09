@@ -19,8 +19,7 @@ describe('UI smoke test', () => {
 	beforeAll(() => {
 		const csv = fs.readFileSync(path.resolve(process.cwd(), 'samplestats.csv'), 'utf8');
 		store.changeConfigSetting({ config_key: 'pos_column', config_value: 2 }); // older export format
-		store.importPlayers(papaparse.parse(csv).data);
-		store.evaluatePlayers();
+		store.importPlayers(papaparse.parse(csv).data); // evaluates automatically
 
 		wrapper = mount(Home, {
 			global: {
@@ -48,7 +47,15 @@ describe('UI smoke test', () => {
 
 	it('renders the players table', async () => {
 		await showScreen(2);
+		expect(store.scores.length).toBeGreaterThan(0);
+		expect(store.players.length).toBeGreaterThan(300);
+		expect(wrapper.findAll('tbody tr').length).toBe(150);
+		expect(wrapper.text()).toContain(`Showing 150 of ${store.players.length} players`);
+		await wrapper.findAll('button').find(b => b.text() === 'Show 150 more').trigger('click');
+		expect(wrapper.findAll('tbody tr').length).toBe(300);
+		await wrapper.findAll('button').find(b => b.text() === 'Show all').trigger('click');
 		expect(wrapper.findAll('tbody tr').length).toBe(store.players.length);
+		expect(wrapper.text()).not.toContain('Showing');
 	});
 
 	it('renders rankings with best/worst highlights and the rank-by bar', async () => {
@@ -56,7 +63,7 @@ describe('UI smoke test', () => {
 		await store.changeActiveCategory('total');
 		await nextTick();
 		const rows = wrapper.findAll('tbody tr');
-		expect(rows.length).toBe(store.scores.length);
+		expect(rows.length).toBe(Math.min(150, store.scores.length));
 		expect(rows[0].find('td').text()).toBe('1');
 		expect(wrapper.findAll('td.text-good').length).toBeGreaterThan(0);
 		expect(wrapper.findAll('td.text-bad').length).toBeGreaterThan(0);
@@ -97,8 +104,30 @@ describe('UI smoke test', () => {
 		await wrapper.find('tbody tr button[title="Add to my team"]').trigger('click');
 		expect(store.my_team).toContain(firstId);
 		await showScreen(6);
-		expect(wrapper.findAll('tbody tr').length).toBe(1);
+		expect(wrapper.findAll('.table-wrap tbody tr').length).toBe(1);
 		expect(wrapper.find('aside').text()).toContain('My Team · 1');
+	});
+
+	it('fills roster slots and edits eligibility and IR', async () => {
+		const roster = () => wrapper.find('section.card table');
+		const rowFor = name => roster().findAll('tbody tr').find(tr => tr.text().includes(name));
+		const player = store.rosterPlayers[0];
+
+		// One player: seated in their own position's slot, everything else open
+		expect(roster().findAll('tbody tr').length).toBe(store.config.roster_slots.length);
+		expect(rowFor(player.name).find('td').text()).toBe(player.position);
+		expect(wrapper.find('aside').text()).toContain('UTIL ×3');
+
+		// Mark them eligible at another position, then move them to IR
+		const other = ['PG', 'SG', 'SF', 'PF', 'C'].find(position => position !== player.position);
+		await rowFor(player.name).findAll('button').find(b => b.text() === other).trigger('click');
+		expect(store.position_overrides[player.id]).toEqual([other]);
+		expect(store.rosterPlayers[0].positions).toContain(other);
+
+		await rowFor(player.name).findAll('button').find(b => b.text() === 'IR').trigger('click');
+		expect(rowFor(player.name).find('td').text()).toBe('IR');
+		await rowFor(player.name).findAll('button').find(b => b.text() === 'IR').trigger('click');
+		expect(rowFor(player.name).find('td').text()).toBe(player.position);
 	});
 
 	it('renders the watch list empty state', async () => {
@@ -109,6 +138,56 @@ describe('UI smoke test', () => {
 	it('renders the configure screen', async () => {
 		await showScreen(4);
 		expect(wrapper.findAll('select[multiple]').length).toBe(4);
+	});
+
+	it('edits roster slots and rejects unknown ones', async () => {
+		const input = () => wrapper.find('input[type="text"]');
+		await input().setValue('PG, QB, Bench');
+		await input().trigger('change');
+		expect(wrapper.text()).toContain('Unknown slot: QB');
+		expect(store.config.roster_slots.length).toBe(15);
+
+		await input().setValue('pg, sg, util, bench');
+		await input().trigger('change');
+		expect(store.config.roster_slots).toEqual(['PG', 'SG', 'UTIL', 'Bench']);
+		expect(input().element.value).toBe('PG, SG, UTIL, Bench');
+
+		await input().setValue('PG, SG, SF, PF, C, G, F, UTIL, UTIL, UTIL, Bench, Bench, Bench, Bench, IR');
+		await input().trigger('change');
+		expect(store.config.roster_slots.length).toBe(15);
+	});
+
+	it('re-scores on valid setting changes and ignores invalid numbers', async () => {
+		const input = () => wrapper.find('label:has(input[type="number"][min="0"]) input');
+		const scoredBefore = store.scores.length;
+
+		await input().setValue('');
+		expect(store.config.min_games_played).toBe(10);
+		await input().setValue('-3');
+		expect(store.config.min_games_played).toBe(10);
+		await input().trigger('blur');
+		expect(input().element.value).toBe('10');
+
+		await input().setValue('60');
+		expect(store.config.min_games_played).toBe(60);
+		expect(store.scores.length).toBeLessThan(scoredBefore);
+		await input().setValue('10');
+		expect(store.scores.length).toBe(scoredBefore);
+	});
+
+	it('switches and remembers the light/dark theme', async () => {
+		const button = label => wrapper.find(`header button[title="${label}"]`);
+		await button('Dark').trigger('click');
+		expect(document.documentElement.dataset.theme).toBe('dark');
+		expect(window.localStorage.getItem('theme')).toBe('dark');
+		expect(button('Dark').attributes('aria-checked')).toBe('true');
+
+		await button('Light').trigger('click');
+		expect(document.documentElement.dataset.theme).toBe('light');
+
+		await button('Match system').trigger('click');
+		expect(document.documentElement.dataset.theme).toBeUndefined();
+		expect(window.localStorage.getItem('theme')).toBeNull();
 	});
 
 	it('produced no Vue warnings', () => {

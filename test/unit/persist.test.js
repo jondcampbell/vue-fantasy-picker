@@ -34,6 +34,15 @@ describe('restoreState', () => {
 		expect(restoreState(defaults(), saved).config.min_games_played).toBe(10);
 	});
 
+	it('replaces invalid saved numbers with the defaults', () => {
+		const saved = { config: { min_games_played: null, ranking_only_columns: [], yearly_total_columns: [5] } };
+		expect(restoreState(defaults(), saved).config.min_games_played).toBe(10);
+		saved.config.min_games_played = 'abc';
+		expect(restoreState(defaults(), saved).config.min_games_played).toBe(10);
+		saved.config.min_games_played = 0;
+		expect(restoreState(defaults(), saved).config.min_games_played).toBe(0);
+	});
+
 	it('migrates pre-ranking-only state: adds the per-game conversion and converts loaded players', () => {
 		const saved = {
 			config: { games_column: 2, key_columns: [5], yearly_total_columns: [5] },

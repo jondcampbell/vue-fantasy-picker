@@ -13,6 +13,13 @@ export const restoreState = function(defaults, saved) {
 
 	const state = { ...defaults, ...saved, config: { ...defaults.config, ...(saved.config || {}) } };
 
+	// Numeric settings saved as null (NaN from an emptied input) or garbage fall back to the default
+	Object.keys(defaults.config).forEach(key => {
+		if (typeof defaults.config[key] === 'number' && !Number.isFinite(state.config[key])) {
+			state.config[key] = defaults.config[key];
+		}
+	});
+
 	// Saved before ranking-only columns existed: their season totals (BLK, TOV) were never converted
 	// to per-game, so convert them now instead of forcing a re-import (which clears the lists)
 	if (saved.config && !('ranking_only_columns' in saved.config)) {

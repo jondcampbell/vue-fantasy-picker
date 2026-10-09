@@ -46,7 +46,7 @@
                     </thead>
                     <tbody>
                         <score-row
-                        v-for="(scoreItem, index) in filteredPlayers"
+                        v-for="(scoreItem, index) in limitRows(filteredPlayers)"
                         :key="scoreItem.playerId"
                         :rank="index + 1"
                         :bestScores="bestScores"
@@ -59,6 +59,7 @@
                         ></score-row>
                     </tbody>
                 </table>
+                <table-footer :shown="Math.min(rowLimit, filteredPlayers.length)" :total="filteredPlayers.length" @more="showMoreRows" @all="showAllRows"></table-footer>
             </div>
         </div>
         <div class="card px-6 py-12 text-center text-sm text-muted" v-else>No players match these filters.</div>
@@ -71,9 +72,12 @@
     import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
     import PlayerListScoring from 'components/partials/PlayerListScoring.vue';
     import { scoredColumns } from 'store/scoring';
+    import TableFooter from 'components/partials/TableFooter.vue';
+    import rowLimit from 'components/mixins/rowLimit.js';
 
 
     export default {
+        mixins: [rowLimit],
         methods: {
             isActive(key) {
                 return this.$store.active_category == key;
@@ -119,7 +123,8 @@
             ScoreRow,
             PlayerSummary,
             PlayerFiltering,
-            PlayerListScoring
+            PlayerListScoring,
+            TableFooter
         }
     }
 </script>

@@ -9,13 +9,14 @@
             </thead>
             <tbody>
                 <player-row
-                v-for="(player, index) in players"
+                v-for="(player, index) in limitRows(players)"
                 :key="player[$store.config.id_column]"
                 :player="player"
                 :columnClasses="columnClasses"
                 :index="index"></player-row>
             </tbody>
         </table>
+        <table-footer :shown="Math.min(rowLimit, players.length)" :total="players.length" @more="showMoreRows" @all="showAllRows"></table-footer>
     </div>
     <div class="card px-6 py-12 text-center text-sm text-muted" v-else>
         <slot name="empty">No players match these filters.</slot>
@@ -24,8 +25,11 @@
 
 <script>
     import PlayerRow from 'components/partials/PlayerRow.vue';
+    import TableFooter from 'components/partials/TableFooter.vue';
+    import rowLimit from 'components/mixins/rowLimit.js';
 
     export default {
+        mixins: [rowLimit],
         props: [
             'players'
         ],
@@ -50,7 +54,8 @@
             }
         },
         components: {
-            PlayerRow
+            PlayerRow,
+            TableFooter
         }
     }
 </script>

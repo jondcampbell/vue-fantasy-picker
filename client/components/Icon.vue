@@ -7,7 +7,8 @@
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
   faUpload, faBinoculars, faUsers, faExclamation, faCheck, faCircle,
-  faBasketball, faTrophy, faGear, faList, faMagnifyingGlass, faFileCsv, faCloudArrowUp, faChartColumn, faCaretDown
+  faBasketball, faTrophy, faGear, faList, faMagnifyingGlass, faFileCsv, faCloudArrowUp, faChartColumn, faCaretDown,
+  faSun, faMoon, faDesktop
 } from '@fortawesome/free-solid-svg-icons';
 
 const icons = {
@@ -24,7 +25,10 @@ const icons = {
   csv: faFileCsv,
   cloud: faCloudArrowUp,
   chart: faChartColumn,
-  'caret-down': faCaretDown
+  'caret-down': faCaretDown,
+  sun: faSun,
+  moon: faMoon,
+  desktop: faDesktop
 };
 
 export default {

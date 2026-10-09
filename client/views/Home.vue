@@ -7,6 +7,7 @@
 				Fantasy Stats Man
 			</a>
 
+			<theme-toggle class="ml-auto"></theme-toggle>
 		</header>
 
 		<div class="flex flex-col sm:flex-row">
@@ -24,6 +25,9 @@
 				<div class="mt-6 hidden space-y-4 sm:block">
 					<section v-if="myPlayers.length > 0">
 						<h3 class="label flex items-center gap-1.5"><span class="size-2 rounded-full bg-good"></span>My Team · {{ myPlayers.length }}</h3>
+						<div class="mb-2 flex flex-wrap gap-1" v-if="$store.openRosterSlots.length > 0">
+							<span class="chip text-warn" v-for="open in $store.openRosterSlots" :key="open.slot" :title="`Open roster slot: ${open.slot}`">{{ open.slot }}<template v-if="open.count > 1"> ×{{ open.count }}</template></span>
+						</div>
 						<ul class="space-y-0.5 text-sm">
 							<li v-for="player in myPlayers" :key="player[$store.config.id_column]" class="flex items-center justify-between gap-2 rounded-md px-2 py-1 hover:bg-surface-2">
 								<span class="truncate">{{ player[$store.config.name_column] }}</span>
@@ -82,6 +86,7 @@
     import Scores from 'components/pages/Scores.vue';
     import WatchList from 'components/pages/WatchList.vue';
     import MyTeam from 'components/pages/MyTeam.vue';
+    import ThemeToggle from 'components/partials/ThemeToggle.vue';
 
     export default {
         methods: {
@@ -121,7 +126,8 @@
 			Players,
 			Scores,
 			WatchList,
-			MyTeam
+			MyTeam,
+			ThemeToggle
         }
     }
 </script>

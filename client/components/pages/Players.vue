@@ -1,13 +1,8 @@
 <template>
     <div class="space-y-5">
-        <header class="flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <h2 class="page-title">Players</h2>
-                <p class="page-subtitle">Raw stats from your import. Evaluate to score players against the category baselines.</p>
-            </div>
-            <button type="button" @click="evaluatePlayers()" class="btn btn-primary" :disabled="$store.players.length == 0">
-                <icon name="chart"></icon> Evaluate Players
-            </button>
+        <header>
+            <h2 class="page-title">Players</h2>
+            <p class="page-subtitle">Raw stats from your import. Scores update automatically on the Rankings screen.</p>
         </header>
 
         <div class="card space-y-4 p-4">
@@ -22,18 +17,11 @@
 </template>
 
 <script>
-    import Swal from 'sweetalert2';
     import PlayerTable from 'components/partials/PlayerTable.vue';
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
     import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
 
     export default {
-        methods: {
-            evaluatePlayers() {
-                this.$store.evaluatePlayers();
-                Swal.fire("Woot!", "We evaluated your players", "success");
-            }
-        },
         computed: {
             filteredPlayers() {
                 return this.$store.filteredPlayers;

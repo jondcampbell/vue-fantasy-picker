@@ -2,6 +2,7 @@ import { markRaw, toRaw } from 'vue'
 import { createPinia, defineStore } from 'pinia'
 import { roundFloat, meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns } from './scoring'
 import { persist } from './persist'
+import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots } from './roster'
 
 const defaultState = () => ({
 	config: {
@@ -53,6 +54,8 @@ const defaultState = () => ({
 			'PF',
 			'SF'
 		],
+		// Lineup slots for My Team (ESPN layout); see client/store/roster.js
+		roster_slots: [...DEFAULT_SLOTS],
 	},
 	players: [],
 	columns: [],
@@ -64,7 +67,11 @@ const defaultState = () => ({
 	search_text: '',
 	my_team: [],
 	taken_players: [],
-	watch_list: []
+	watch_list: [],
+	// player id -> extra positions the league allows beyond the CSV position
+	position_overrides: {},
+	// my team players parked in IR slots
+	ir_players: []
 });
 
 const toNumber = function(value) {
@@ -109,6 +116,32 @@ export const usePickerStore = defineStore('picker', {
 		},
 		isTaken() {
 			return (id) => this.takenSet.has(parseInt(id));
+		},
+
+		// My team with lineup eligibility and overall score, for roster slot assignment
+		rosterPlayers: (state) => {
+			const config = state.config;
+			const scoreById = new Map(state.scores.map(score => [score.playerId, score.scoreData.total]));
+			const ir = new Set(state.ir_players);
+			return playersForIds(state, state.my_team).map(player => {
+				const id = player[config.id_column];
+				const position = player[config.pos_column];
+				const extra = state.position_overrides[id] || [];
+				return {
+					id: id,
+					name: player[config.name_column],
+					position: position,
+					positions: POSITIONS.filter(p => p === position || extra.includes(p)),
+					score: scoreById.get(id),
+					ir: ir.has(id)
+				};
+			});
+		},
+		roster() {
+			return assignRoster(this.rosterPlayers, this.config.roster_slots);
+		},
+		openRosterSlots() {
+			return openSlots(this.roster.assignments);
 		},
 
 		myPlayers: (state) => state.scores.length > 0 ? playersForIds(state, state.my_team) : [],
@@ -185,6 +218,7 @@ export const usePickerStore = defineStore('picker', {
 			this.resetLists();
 			this.columns = importData[0];
 			this.setPlayers(importData.slice(1));
+			this.evaluatePlayers();
 		},
 		setPlayers(players) {
 			const nameColumn = this.config.name_column;
@@ -258,14 +292,40 @@ export const usePickerStore = defineStore('picker', {
 		removeFromList({ list, player_id }) {
 			const id = parseInt(player_id);
 			this[list] = this[list].filter(player => player !== id);
+			if (list === 'my_team') {
+				this.ir_players = this.ir_players.filter(player => player !== id);
+			}
 		},
 		resetLists() {
 			this.taken_players = [];
 			this.my_team = [];
 			this.watch_list = [];
+			this.position_overrides = {};
+			this.ir_players = [];
 		},
+		// Add or remove an extra position the league lets this player fill
+		togglePositionOverride({ player_id, position }) {
+			const id = parseInt(player_id);
+			const current = this.position_overrides[id] || [];
+			const next = current.includes(position) ? current.filter(p => p !== position) : [...current, position];
+			const overrides = { ...this.position_overrides };
+			if (next.length > 0) {
+				overrides[id] = next;
+			} else {
+				delete overrides[id];
+			}
+			this.position_overrides = overrides;
+		},
+		toggleIr(player_id) {
+			const id = parseInt(player_id);
+			this.ir_players = this.ir_players.includes(id)
+				? this.ir_players.filter(player => player !== id)
+				: [...this.ir_players, id];
+		},
+		// Every setting change re-scores immediately (evaluating takes a few tens of ms)
 		changeConfigSetting({ config_key, config_value }) {
 			this.config[config_key] = config_value;
+			this.evaluatePlayers();
 		},
 		evaluatePlayers() {
 			const config = this.config;
@@ -276,6 +336,11 @@ export const usePickerStore = defineStore('picker', {
 				averages[column] = categoryAverage(this.players, column, config);
 			});
 			this.column_averages = averages;
+
+			// Ranking by a column that is no longer scored falls back to the overall score
+			if (this.active_category !== 'total' && !(this.active_category in averages)) {
+				this.active_category = 'total';
+			}
 
 			// Score each player who has played at least the minimum games and minutes
 			this.scores = markRaw(this.players.filter(player => meetsMinimums(player, config)).map(player => {
@@ -324,6 +389,10 @@ export const useStore = function() {
 		store = usePickerStore(pinia);
 		persist(store);
 		markRowsRaw(store);
+		// Re-score saved players so scores always match the current scoring logic and settings
+		if (store.players.length > 0) {
+			store.evaluatePlayers();
+		}
 	}
 	return store;
 };
