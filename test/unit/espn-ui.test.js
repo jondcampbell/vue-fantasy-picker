@@ -91,6 +91,31 @@ describe('ESPN data in the UI', () => {
 		expect(store.rosterPlayers[0].positions).toEqual(['SF', 'PF']);
 	});
 
+	it('weights FT% by attempts by default and explains it on hover', () => {
+		store.useDataset('espn-actual-2026');
+		const ft = store.columns.indexOf('FT%');
+		expect(store.weightedPercentColumns).toEqual([store.columns.indexOf('FG%'), ft]);
+		const jokic = () => store.scores.find(score => score.playerKey === 'jokicni01').scoreData[ft];
+		const weighted = jokic();
+
+		const row = store.keyRows.get('jokicni01');
+		const games = row[store.config.games_column];
+		const made = row[store.columns.indexOf('FT')] / games;
+		const attempts = row[store.columns.indexOf('FTA')] / games;
+		const baseline = store.column_averages[ft];
+		expect(weighted).toBeCloseTo(1 + (made - baseline.percentage * attempts) / (baseline.percentage * baseline.attempts), 3);
+
+		const page = mountWith(Scores);
+		expect(page.text()).toContain('FG%, FT% are weighted by attempts');
+		const cell = page.findAll('tbody tr').find(tr => tr.text().includes('Nikola Jokic')).findAll('td').find(td => (td.attributes('title') || '').includes('FTA/game'));
+		expect(cell.attributes('title')).toContain(`${attempts.toFixed(1)} FTA/game at ${(made / attempts * 100).toFixed(1)}%`);
+
+		store.changeConfigSetting({ config_key: 'weight_percentages', config_value: false });
+		expect(store.weightedPercentColumns).toEqual([]);
+		expect(jokic()).not.toBe(weighted);
+		store.changeConfigSetting({ config_key: 'weight_percentages', config_value: true });
+	});
+
 	it('filters and shows positions by ESPN eligibility, and finds players for open slots', async () => {
 		store.useDataset('espn-actual-2026');
 		const eligible = key => store.espnInfo.get(key)?.eligible || [];

@@ -9,7 +9,7 @@ Runs entirely in the browser on your machine. There's no backend, and everything
 - **Online stats** with one click (no account or API key): ESPN's season stats, ESPN's projections, last-30-day stats, positions, injuries and draft ranks, plus Basketball-Reference season stats via nbaapi.com. Each becomes a dataset you can switch between, and every player keeps both their ESPN and Basketball-Reference IDs.
 - **Our own rankings** from any dataset. Rankings also shows a **Proj** column (our score from ESPN's projected stats) and ESPN's draft rank for reference.
 - **CSV import** of a Basketball-Reference season totals export as an alternative. Players listed on several rows after a trade are de-duplicated, and season totals are converted to per-game.
-- **Automatic scoring** after every import and settings change. Each category score is the player's value divided by the category baseline (1.00 = average). For lower-is-better stats like turnovers, a lower value means a higher score.
+- **Automatic scoring** after every import and settings change. Each category score is the player's value divided by the category baseline (1.00 = average). For lower-is-better stats like turnovers, a lower value means a higher score. FG%, FT% and 3P% are weighted by attempts (on by default, in Configure): the score is the player's extra makes over an average shooter on the same attempts, so 90% on 8 free throws a game counts far more than 90% on 1, and a high-volume poor shooter scores low. Hover a percentage score on Rankings to see the shooting line behind it.
 - **Configurable baseline**: mean or median, using all qualifying players or only the top 100/150/200, with minimum games and minutes per game.
 - **Rankings**: rank by the overall score or any category, either with the "Rank by" pills or by clicking a column header. Best and worst values in each column are highlighted.
 - **Ranking-only columns** (BLK and TOV by default) can be ranked without counting toward the overall score.
@@ -67,6 +67,5 @@ Vue 3 (Options API) · Pinia · Vite · Tailwind CSS v4 · Vitest + happy-dom ·
 
 - Mark taken players by pasting rosters from your league site
 - Compare your team's category strengths against the league or another team
-- An alternate ranking that weights good shooting percentages more heavily
 
 Originally started from [VuePack](https://github.com/egoist/vuepack).

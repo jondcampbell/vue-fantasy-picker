@@ -9,7 +9,12 @@ import {
 	countAboveAverage,
 	scoredColumns,
 	overallColumns,
-	puntableColumns
+	puntableColumns,
+	percentageParts,
+	percentageBaseline,
+	weightedPercentageScore,
+	categoryBaselines,
+	weightedColumns
 } from '../../client/store/scoring';
 
 // Columns: 0 id, 1 name, 2 games, 3 total minutes, 4 points (per game), 5 turnovers (per game)
@@ -185,5 +190,67 @@ describe('punted categories', () => {
 
 	it('ignores punts for columns that are no longer scoring categories', () => {
 		expect(overallColumns(makeConfig({ punt_columns: [9] }))).toEqual([PTS, TOV]);
+	});
+});
+
+describe('percentages weighted by attempts', () => {
+	// Columns: 0 id, 1 name, 2 games, 3 total minutes, 4 FT (season total), 5 FTA (season total), 6 FT%
+	const COLUMNS = ['Rk', 'Player', 'G', 'MP', 'FT', 'FTA', 'FT%'];
+	const FT_PCT = 6;
+	const shooter = (id, made, attempts, games = 10) => [id, `P${id}`, games, games * 30, made * games, attempts * games, attempts ? made / attempts : 0];
+	const weightConfig = (overrides = {}) => makeConfig({ key_columns: [FT_PCT], negative_columns: [], weight_percentages: true, ...overrides });
+	const parts = { made: 4, attempts: 5 };
+
+	it('finds makes and attempts columns by header', () => {
+		expect(percentageParts(COLUMNS)).toEqual({ [FT_PCT]: parts });
+		expect(percentageParts(['Player', 'FG%', 'FGA'])).toEqual({});
+	});
+
+	it('scores extra makes over an average shooter: volume counts', () => {
+		const baseline = { percentage: 0.78, attempts: 3 };
+		expect(weightedPercentageScore(7.2, 8, baseline)).toBe(1.4103);
+		expect(weightedPercentageScore(0.9, 1, baseline)).toBe(1.0513);
+		expect(weightedPercentageScore(4.8, 8, baseline)).toBe(0.3846);
+		expect(weightedPercentageScore(2.34, 3, baseline)).toBe(1);
+		expect(weightedPercentageScore(1, 1, { percentage: 0, attempts: 0 })).toBe(0);
+	});
+
+	it('uses the league percentage (total makes / attempts) and per-game attempts over the pool', () => {
+		const players = [shooter(1, 9, 10), shooter(2, 1, 2), shooter(3, 3, 6), shooter(4, 5, 5, 2)];
+		// Player 4 misses the minimum games
+		expect(percentageBaseline(players, parts, weightConfig())).toEqual({ made: 4, attemptsColumn: 5, percentage: 0.7222, attempts: 6 });
+		expect(percentageBaseline(players, parts, weightConfig({ average_mode: AVERAGE_MODE_MEDIAN })).attempts).toBe(6);
+		// Pool size keeps the players with the most attempts
+		expect(percentageBaseline(players, parts, weightConfig({ average_pool_size: 2 }))).toMatchObject({ percentage: 0.75, attempts: 8 });
+		expect(percentageBaseline([shooter(1, 0, 0)], parts, weightConfig())).toBeNull();
+	});
+
+	it('treats makes and attempts listed in Season Totals as already per-game', () => {
+		const perGameRow = [1, 'P1', 10, 300, 9, 10, 0.9];
+		const baseline = percentageBaseline([perGameRow], parts, weightConfig({ yearly_total_columns: [4, 5] }));
+		expect(baseline).toMatchObject({ percentage: 0.9, attempts: 10 });
+	});
+
+	it('weights only when turned on, and the high-volume shooter wins', () => {
+		const players = [shooter(1, 7.2, 8), shooter(2, 0.9, 1), shooter(3, 3, 4)];
+		const on = categoryBaselines(players, COLUMNS, weightConfig());
+		expect(weightedColumns(on)).toEqual([FT_PCT]);
+		const volume = playerRanking(players[0], weightConfig(), on);
+		const rare = playerRanking(players[1], weightConfig(), on);
+		expect(volume[FT_PCT]).toBeGreaterThan(rare[FT_PCT]);
+		expect(volume.total).toBe(volume[FT_PCT]);
+
+		const off = categoryBaselines(players, COLUMNS, weightConfig({ weight_percentages: false }));
+		expect(weightedColumns(off)).toEqual([]);
+		const plainVolume = playerRanking(players[0], weightConfig({ weight_percentages: false }), off);
+		const plainRare = playerRanking(players[1], weightConfig({ weight_percentages: false }), off);
+		expect(plainVolume[FT_PCT]).toBe(plainRare[FT_PCT]);
+	});
+
+	it('falls back to the plain percentage without makes/attempts columns', () => {
+		const players = [shooter(1, 9, 10), shooter(2, 3, 6)];
+		const baselines = categoryBaselines(players, ['Rk', 'Player', 'G', 'MP', 'x', 'y', 'FT%'], weightConfig());
+		expect(weightedColumns(baselines)).toEqual([]);
+		expect(typeof baselines[FT_PCT]).toBe('number');
 	});
 });

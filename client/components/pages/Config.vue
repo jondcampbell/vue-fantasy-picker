@@ -46,6 +46,14 @@
                 </div>
 
                 <div>
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-sm font-medium">
+                        <input type="checkbox" class="rounded border-line text-accent" :checked="weight_percentages" @change="$store.changeConfigSetting({ config_key: 'weight_percentages', config_value: $event.target.checked })"/>
+                        Weight percentages by attempts
+                    </label>
+                    <p class="help">Scores FG%, FT% and 3P% by extra makes over an average shooter on the player's attempts, so volume counts: 90% on 8 free throws a game beats 90% on 1.<template v-if="weight_percentages && unweightedPercentages.length > 0"> {{ unweightedPercentages.join(', ') }} can't be weighted (no makes/attempts columns) and use the plain percentage.</template></p>
+                </div>
+
+                <div>
                     <span class="label">Positions</span>
                     <div class="flex flex-wrap gap-1.5">
                         <span class="chip" v-for="position in $store.config.positions" :key="position">{{ position }}</span>
@@ -134,6 +142,7 @@
     import { mapState } from 'pinia';
     import { usePickerStore } from 'store';
     import { parseSlots, SLOT_TYPES } from 'store/roster';
+    import { scoredColumns } from 'store/scoring';
 
     export default {
         data() {
@@ -209,6 +218,13 @@
                 let positions = this.$store.config.positions;
                 return positions.join(',');
             },
+            // Scored percentage columns that fall back to the plain percentage while weighting is on
+            unweightedPercentages() {
+                const weighted = this.$store.weightedPercentColumns;
+                return scoredColumns(this.$store.config)
+                    .filter(column => String(this.$store.columns[column]).endsWith('%') && !weighted.includes(column))
+                    .map(column => this.$store.columns[column]);
+            },
             available_columns_simple: function () {
                 return this.$store.columns.map((column,index) => {
                     return index;
@@ -254,6 +270,7 @@
             ...mapState(usePickerStore, {
                 average_mode: state => state.config.average_mode,
                 average_pool_size: state => state.config.average_pool_size,
+                weight_percentages: state => state.config.weight_percentages,
                 teams_in_league: state => state.config.teams_in_league,
                 players_per_team: state => state.config.players_per_team,
                 min_games_played: state => state.config.min_games_played,

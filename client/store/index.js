@@ -1,6 +1,6 @@
 import { markRaw, toRaw } from 'vue'
 import { createPinia, defineStore } from 'pinia'
-import { meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns, overallColumns } from './scoring'
+import { meetsMinimums, categoryBaselines, weightedColumns, perGame, playerRanking, countAboveAverage, scoredColumns, overallColumns } from './scoring'
 import { persist } from './persist'
 import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots, openSlotChecker, isStarterSlot } from './roster'
 import { detectKeyColumn, detectEspnColumn, detectTeamColumn, computeKeys, reconcileKeys, isNameKey, ESPN_PREFIX } from './identity'
@@ -17,6 +17,8 @@ const defaultState = () => ({
 		players_per_team:13,
 		average_mode: 1,
 		average_pool_size: 'all',
+		// Score FG%, FT% and 3P% by impact (extra makes on the player's attempts) instead of the plain percentage
+		weight_percentages: true,
 		min_games_played: 10,
 		min_minutes_played: 8,
 		screen:1,
@@ -112,11 +114,8 @@ const PLAYER_LISTS = ['my_team', 'taken_players', 'watch_list'];
 export const LIST_LABELS = { my_team: 'My Team', taken_players: 'Taken', watch_list: 'Watch List' };
 
 // Baselines and scores for a set of normalized rows
-const scoreRows = function(players, config, rowKeys) {
-	const averages = {};
-	scoredColumns(config).forEach(column => {
-		averages[column] = categoryAverage(players, column, config);
-	});
+const scoreRows = function(players, columns, config, rowKeys) {
+	const averages = categoryBaselines(players, columns, config);
 	const scores = players.filter(player => meetsMinimums(player, config)).map(player => {
 		const scoreData = playerRanking(player, config, averages);
 		scoreData.aboveAverage = countAboveAverage(scoreData, overallColumns(config));
@@ -147,6 +146,24 @@ export const usePickerStore = defineStore('picker', {
 		keyColumns: (state) => {
 			const overall = overallColumns(state.config);
 			return state.columns.filter((column, index) => overall.includes(index));
+		},
+		// Percentage columns currently scored by attempts (FG%, FT%, 3P% when weighting is on)
+		weightedPercentColumns: (state) => weightedColumns(state.column_averages),
+		// Shooting line behind a weighted percentage score, e.g. "8.0 FTA/game at 90.0% (league 78.0% on 3.0)"
+		shootingDetail() {
+			const config = this.config;
+			return (key, column) => {
+				const baseline = this.column_averages[column];
+				const row = this.keyRows.get(key);
+				if (!row || typeof baseline !== 'object' || baseline === null) {
+					return null;
+				}
+				const made = perGame(row, baseline.made, config);
+				const attempts = perGame(row, baseline.attemptsColumn, config);
+				const pct = value => `${(value * 100).toFixed(1)}%`;
+				const label = this.columns[baseline.attemptsColumn];
+				return `${attempts.toFixed(1)} ${label}/game at ${attempts > 0 ? pct(made / attempts) : '—'} (league ${pct(baseline.percentage)} on ${baseline.attempts.toFixed(1)})`;
+			};
 		},
 		activeCategoryName: (state) => {
 			if (state.active_category == 'total') {
@@ -707,7 +724,7 @@ export const usePickerStore = defineStore('picker', {
 		// Baselines per scored column (key categories plus ranking-only), then a score for each player
 		// who meets the minimum games and minutes; also scores ESPN's projection for the Proj column
 		evaluatePlayers() {
-			const { averages, scores } = scoreRows(this.players, this.config, this.rowKeys);
+			const { averages, scores } = scoreRows(this.players, this.columns, this.config, this.rowKeys);
 			this.column_averages = averages;
 			this.scores = markRaw(scores);
 
@@ -731,7 +748,7 @@ export const usePickerStore = defineStore('picker', {
 			const config = configFor(this.config, dataset.columns);
 			const players = normalizeRows(dataset.rows, config);
 			const rowKeys = computeKeys(players, dataset.columns, config, this.espn_links);
-			const { scores } = scoreRows(players, config, rowKeys);
+			const { scores } = scoreRows(players, dataset.columns, config, rowKeys);
 			return Object.fromEntries(scores.map(score => [score.playerKey, score.scoreData.total]));
 		}
 	}

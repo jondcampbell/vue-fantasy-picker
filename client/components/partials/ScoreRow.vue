@@ -10,7 +10,7 @@
         </td>
         <td class="text-right">{{ playerGames }}</td>
         <td class="whitespace-nowrap text-muted">{{ playerPosition }}</td>
-        <td v-for="(score_column, index) in scoreData" :key="index" :class="scoreClass(index)" :title="scoreData[index]">{{ formatScore(index) }}</td>
+        <td v-for="(score_column, index) in scoreData" :key="index" :class="scoreClass(index)" :title="titles?.[index] ? `${scoreData[index]} · ${titles[index]}` : scoreData[index]">{{ formatScore(index) }}</td>
         <td v-if="proj !== undefined" class="text-right" :class="proj === null ? 'text-muted' : proj >= 1 ? 'text-good' : 'text-bad'" :title="proj ?? 'No ESPN projection'">{{ proj === null ? '—' : proj.toFixed(2) }}</td>
         <td v-if="showEspnRank" class="text-right text-muted">{{ espn?.espnRank ?? '—' }}</td>
     </tr>
@@ -33,7 +33,9 @@
             'proj',
             // ESPN details for this player (injury, rank), or null
             'espn',
-            'showEspnRank'
+            'showEspnRank',
+            // Optional tooltip text per score column (the shooting line for weighted percentages)
+            'titles'
         ],
         computed: {
             injury() {

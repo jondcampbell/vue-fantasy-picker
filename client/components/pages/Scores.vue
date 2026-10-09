@@ -2,7 +2,7 @@
     <div class="space-y-5">
         <header class="space-y-3">
             <h2 class="page-title">Rankings</h2>
-            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score (ranking-only or punted).</template><template v-if="showProj"> Proj is the same score from ESPN's projected stats.</template></p>
+            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score (ranking-only or punted).</template><template v-if="weightedLabel"> {{ weightedLabel }} {{ $store.weightedPercentColumns.length > 1 ? 'are' : 'is' }} weighted by attempts (hover a score for the shooting line).</template><template v-if="showProj"> Proj is the same score from ESPN's projected stats.</template></p>
             <dataset-switcher></dataset-switcher>
         </header>
 
@@ -74,6 +74,7 @@
                         :proj="showProj ? ($store.projection_totals[scoreItem.playerKey] ?? null) : undefined"
                         :espn="espnFor(scoreItem.playerKey)"
                         :showEspnRank="showEspnRank"
+                        :titles="shootingTitles(scoreItem.playerKey)"
                         ></score-row>
                     </tbody>
                 </table>
@@ -105,6 +106,14 @@
             positionLabel(scoreItem) {
                 return this.$store.eligiblePositions(scoreItem.playerKey).join(', ') || scoreItem.playerPosition;
             },
+            // Tooltips for weighted percentage cells: the shooting line behind the score
+            shootingTitles(key) {
+                const columns = this.$store.weightedPercentColumns;
+                if (columns.length === 0) {
+                    return null;
+                }
+                return Object.fromEntries(columns.map(column => [column, this.$store.shootingDetail(key, column)]));
+            },
             espnFor(key) {
                 return this.$store.espnInfo.get(key) || null;
             },
@@ -115,6 +124,9 @@
         computed: {
             showProj() {
                 return this.$store.projectionDataset !== null;
+            },
+            weightedLabel() {
+                return this.$store.weightedPercentColumns.map(column => this.$store.columns[column]).join(', ');
             },
             showEspnRank() {
                 return Object.keys(this.$store.espn_players).length > 0;
