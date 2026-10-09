@@ -54,4 +54,4 @@ Package manager is **pnpm**. In Claude's Bash shell, prefix commands with `sourc
   - Reuse the shared classes in `app.css` (`page-title`, `page-subtitle`, `card`, `btn btn-primary|btn-ghost`, `label`, `help`, `field`, `chip`, `pill`, `nav-item`, `table-wrap` + `data-table`, `pin` for sticky table columns, `key-col`) before adding long utility strings.
   - Class names built in JS (e.g. `scoreClass()` in ScoreRow, `columnClasses` in PlayerTable) must be complete literal strings so Tailwind detects them.
   - Utilities beat component classes regardless of specificity; put a style in the component layer when something (e.g. row hover) needs to override it.
-- README has a running "Maintenance update" log; append to it only if asked.
+- README describes features, setup and commands for a human reader; keep it current when features change, but no changelog/maintenance notes.
