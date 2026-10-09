@@ -6,7 +6,8 @@ import {
 	categoryAverage,
 	categoryScore,
 	playerRanking,
-	countAboveAverage
+	countAboveAverage,
+	scoredColumns
 } from '../../client/store/scoring';
 
 // Columns: 0 id, 1 name, 2 games, 3 total minutes, 4 points (per game), 5 turnovers (per game)
@@ -122,6 +123,25 @@ describe('playerRanking', () => {
 	it('gives an all-average player a total of 1.0', () => {
 		const averages = { [PTS]: 20, [TOV]: 2 };
 		expect(playerRanking(player(1, 20, 2), makeConfig(), averages).total).toBe(1);
+	});
+});
+
+describe('ranking-only columns', () => {
+	const BLK = 6;
+	const config = makeConfig({ key_columns: [PTS], ranking_only_columns: [BLK, TOV] });
+	const averages = { [PTS]: 20, [TOV]: 2, [BLK]: 1 };
+
+	it('scores key and ranking-only columns in column order without duplicates', () => {
+		expect(scoredColumns(config)).toEqual([PTS, TOV, BLK]);
+		expect(scoredColumns(makeConfig({ ranking_only_columns: [TOV] }))).toEqual([PTS, TOV]);
+		expect(scoredColumns(makeConfig({ ranking_only_columns: undefined }))).toEqual([PTS, TOV]);
+	});
+
+	it('scores ranking-only columns but leaves them out of the total', () => {
+		const ranking = playerRanking([1, 'P', 20, 600, 30, 1, 3], config, averages);
+		expect(ranking[BLK]).toBe(3);
+		expect(ranking[TOV]).toBe(1.5);
+		expect(ranking.total).toBe(1.5);
 	});
 });
 

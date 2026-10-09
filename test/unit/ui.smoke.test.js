@@ -49,7 +49,7 @@ describe('UI smoke test', () => {
 		expect(wrapper.findAll('tbody tr').length).toBe(store.state.players.length);
 	});
 
-	it('renders rankings with best/worst highlights and category pills', async () => {
+	it('renders rankings with best/worst highlights and the rank-by bar', async () => {
 		await showScreen(3);
 		await store.dispatch('changeActiveCategory', 'total');
 		await nextTick();
@@ -58,7 +58,36 @@ describe('UI smoke test', () => {
 		expect(rows[0].find('td').text()).toBe('1');
 		expect(wrapper.findAll('td.text-good').length).toBeGreaterThan(0);
 		expect(wrapper.findAll('td.text-bad').length).toBeGreaterThan(0);
-		expect(wrapper.findAll('header .pill').length).toBe(store.getters.keyColumns.length + 1);
+		expect(wrapper.findAll('main .pill').length).toBe(store.getters.keyColumns.length + 1 + store.state.config.ranking_only_columns.length);
+	});
+
+	it('re-ranks when a category header or pill is clicked', async () => {
+		const ptsIndex = store.state.columns.indexOf('PTS');
+		await wrapper.find('th button[title="Rank by PTS"]').trigger('click');
+		expect(store.state.active_category).toBe(ptsIndex);
+		expect(wrapper.find('th[aria-sort="descending"]').text()).toBe('PTS');
+		const points = store.getters.sortedFilteredPlayerScores.map(p => p.scoreData[ptsIndex]);
+		expect(points).toEqual([...points].sort((a, b) => b - a));
+
+		await wrapper.findAll('main .pill').find(pill => pill.text() === 'Overall').trigger('click');
+		expect(store.state.active_category).toBe('total');
+		expect(wrapper.find('th[aria-sort="descending"]').text()).toBe('Score');
+	});
+
+	it('ranks by ranking-only columns without changing the overall score', async () => {
+		const tovIndex = store.state.columns.indexOf('TOV');
+		const totalsBefore = store.state.scores.map(p => p.scoreData.total);
+		const pill = wrapper.findAll('main .pill').find(p => p.text() === 'TOV');
+		expect(pill.attributes('title')).toContain('not counted');
+		await pill.trigger('click');
+		expect(store.state.active_category).toBe(tovIndex);
+		expect(wrapper.find('th[aria-sort="descending"]').text()).toBe('TOV*');
+		// Turnovers: fewer is better, so the top-ranked player has the lowest per-game TOV
+		const ranked = store.getters.sortedFilteredPlayerScores;
+		const perGame = id => store.state.players.find(p => p[0] === id)[tovIndex];
+		expect(perGame(ranked[0].playerId)).toBeLessThanOrEqual(perGame(ranked[ranked.length - 1].playerId));
+		expect(store.state.scores.map(p => p.scoreData.total)).toEqual(totalsBefore);
+		await store.dispatch('changeActiveCategory', 'total');
 	});
 
 	it('toggles a player onto my team from the table', async () => {
@@ -77,7 +106,7 @@ describe('UI smoke test', () => {
 
 	it('renders the configure screen', async () => {
 		await showScreen(4);
-		expect(wrapper.findAll('select[multiple]').length).toBe(3);
+		expect(wrapper.findAll('select[multiple]').length).toBe(4);
 	});
 
 	it('produced no Vue warnings', () => {

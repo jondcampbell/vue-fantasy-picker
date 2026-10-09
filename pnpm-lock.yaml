@@ -35,9 +35,6 @@ dependencies:
   vuex:
     specifier: ^4.1.0
     version: 4.1.0(vue@3.5.22)
-  vuex-persist:
-    specifier: ^1.7.2
-    version: 1.8.0(vuex@4.1.0)
 
 devDependencies:
   '@babel/core':
@@ -3231,11 +3228,6 @@ packages:
     deprecated: CircularJSON is in maintenance only, flatted is its successor.
     dev: true
 
-  /circular-json@0.5.9:
-    resolution: {integrity: sha512-4ivwqHpIFJZBuhN3g/pEcdbnGUywkBblloGbkglyloVjjR3uT6tieI89MVOfbP2tHX5sgb01FuLgAOzebNlJNQ==}
-    deprecated: CircularJSON is in maintenance only, flatted is its successor.
-    dev: false
-
   /cli-boxes@1.0.0:
     resolution: {integrity: sha512-3Fo5wu8Ytle8q9iCzS4D2MWVL2X7JVWRiS1BnXbTFDhS9c/REkM9vd1AmabsoZoY5/dGi5TT9iKL8Kb6DeBRQg==}
     engines: {node: '>=0.10.0'}
@@ -5516,10 +5508,6 @@ packages:
     resolution: {integrity: sha512-N8XRTIMMqqDgSy4VLKPnJ/+hpGZN+PHQiJnSenYqPaVV/NCqEogTnAdZLQiGKhxX+JCs8waWq2t1XHWKOmlY8g==}
     dev: true
 
-  /lodash.merge@4.6.2:
-    resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
-    dev: false
-
   /lodash.snakecase@4.1.1:
     resolution: {integrity: sha512-QZ1d4xoBHYUeuouhEq3lk3Uq7ldgyFXGBhg04+oRLnIz8o9T65Eh+8YdroUwn846zchkA9yDsDl5CVVaV2nqYw==}
     dev: true
@@ -7709,7 +7697,7 @@ packages:
       eslint-visitor-keys: 4.2.1
       espree: 10.4.0
       esquery: 1.6.0
-      semver: 7.7.3
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7736,16 +7724,6 @@ packages:
       '@vue/runtime-dom': 3.5.22
       '@vue/server-renderer': 3.5.22(vue@3.5.22)
       '@vue/shared': 3.5.22
-
-  /vuex-persist@1.8.0(vuex@4.1.0):
-    resolution: {integrity: sha512-t8qp1DbnMijCduk4t5/rmlxr1Hv+XY6YvAPkJzFJGSEi34CJa1qgtDUErPjEtgM0+42+6qqIWyLWPboGImjHxw==}
-    peerDependencies:
-      vuex: '>=2.5'
-    dependencies:
-      circular-json: 0.5.9
-      lodash.merge: 4.6.2
-      vuex: 4.1.0(vue@3.5.22)
-    dev: false
 
   /vuex@4.1.0(vue@3.5.22):
     resolution: {integrity: sha512-hmV6UerDrPcgbSy9ORAtNXDr9M4wlNP4pEFKye4ujJF8oqgFFuxDCdOLS3eNoRTtq5O3hoBDh9Doj1bQMYHRbQ==}

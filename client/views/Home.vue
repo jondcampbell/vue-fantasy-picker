@@ -1,18 +1,12 @@
 <template>
 	<div class="min-h-screen">
-		<header class="sticky top-0 z-30 flex h-14 items-center gap-6 border-b border-line bg-surface/85 px-4 backdrop-blur">
+		<header class="sticky top-0 z-30 flex h-14 items-center border-b border-line bg-surface/85 px-4 backdrop-blur">
 
 			<a class="flex shrink-0 items-center gap-2 font-semibold tracking-tight" href="#" @click.prevent="changeScreen(1)">
 				<span class="grid size-8 place-items-center rounded-lg bg-accent text-accent-fg"><icon name="basketball"></icon></span>
 				Fantasy Stats Man
 			</a>
 
-			<nav class="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1" v-if="$store.state.scores.length > 0">
-				<a href="#" class="pill" :class="{ 'pill-active': rankingTotalActive }" @click.prevent="changeScreen(3); changeCategory('total');">Overall</a>
-				<a href="#" class="pill" v-for="column in $store.getters.keyColumns" :key="column"
-					:class="{ 'pill-active': $store.state.config.screen == 3 && $store.getters.activeCategoryName == column }"
-					@click.prevent="changeScreen(3); changeCategoryByName(column);">{{column}}</a>
-			</nav>
 		</header>
 
 		<div class="flex flex-col sm:flex-row">
@@ -93,23 +87,11 @@
         methods: {
         	changeScreen(newScreen) {
         	    this.$store.dispatch('changeScreen', newScreen);
-			},
-			changeCategoryByName(categoryName) {
-        	    let categoryIndex = this.$store.state.columns.findIndex(function(column, index) {
-					return column == categoryName;
-				});
-        	    this.changeCategory(categoryIndex);
-			},
-			changeCategory(category) {
-        	    this.$store.dispatch('changeActiveCategory', category);
 			}
 		},
         computed: {
             screen() {
                 return this.$store.state.config.screen;
-            },
-            rankingTotalActive() {
-                return this.screen == 3 && this.$store.state.active_category == 'total';
             },
             navItems() {
                 const state = this.$store.state;
@@ -117,7 +99,7 @@
                 return [
                     { screen: 1, label: 'Import', icon: 'cloud', visible: true, active: this.screen == 1, done: state.players.length > 0, onClick: () => this.changeScreen(1) },
                     { screen: 2, label: 'Players', icon: 'list', visible: true, active: this.screen == 2, done: hasScores, onClick: () => this.changeScreen(2) },
-                    { screen: 3, label: 'Rankings', icon: 'trophy', visible: hasScores, active: this.rankingTotalActive, onClick: () => { this.changeScreen(3); this.changeCategory('total'); } },
+                    { screen: 3, label: 'Rankings', icon: 'trophy', visible: hasScores, active: this.screen == 3, onClick: () => this.changeScreen(3) },
                     { screen: 5, label: 'Watch List', icon: 'binoculars', visible: true, active: this.screen == 5, onClick: () => this.changeScreen(5) },
                     { screen: 6, label: 'My Team', icon: 'users', visible: true, active: this.screen == 6, onClick: () => this.changeScreen(6) },
                     { screen: 4, label: 'Configure', icon: 'gear', visible: true, active: this.screen == 4, onClick: () => this.changeScreen(4) }

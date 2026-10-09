@@ -140,6 +140,24 @@
 	.data-table tbody tr:hover td {
 		@apply bg-surface-2;
 	}
+	/* Clickable column headers that set the ranking category */
+	.sort-header {
+		@apply inline-flex cursor-pointer items-center gap-1 rounded transition hover:text-fg;
+	}
+	.sort-header svg {
+		@apply opacity-0 transition;
+	}
+	.sort-header:hover svg {
+		@apply opacity-50;
+	}
+	.sort-header-active,
+	.sort-header-active:hover {
+		@apply text-accent;
+	}
+	.sort-header-active svg,
+	.sort-header-active:hover svg {
+		@apply opacity-100;
+	}
 	/* Pinned columns stay visible while scrolling sideways */
 	.data-table .pin {
 		@apply sticky z-[5] bg-surface;

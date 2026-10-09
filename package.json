@@ -45,8 +45,7 @@
     "sweetalert2": "^11.12.4",
     "vue": "^3.4.21",
     "vue-router": "^4.3.2",
-    "vuex": "^4.1.0",
-    "vuex-persist": "^1.7.2"
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",

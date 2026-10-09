@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
-import VuexPersistence from 'vuex-persist'
-import { roundFloat, meetsMinimums, categoryAverage, playerRanking, countAboveAverage } from './scoring'
+import { roundFloat, meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns } from './scoring'
+import { persistPlugin } from './persist'
 
 const state = {
 	config: {
@@ -25,9 +25,14 @@ const state = {
 			23,
 			24,
 			25,
-			//26,
-			//27,
+			26,
+			27,
 			29
+		],
+		// Scored and rankable, but not counted in the total
+		ranking_only_columns: [
+			26,
+			27
 		],
 		key_columns:[
 			10,
@@ -232,8 +237,8 @@ const actions = {
 
 		commit('RESET_SCORES');
 
-		// Loop our key columns
-		state.config.key_columns.forEach(function(column,index) {
+		// Loop every scored column (key categories plus ranking-only)
+		scoredColumns(state.config).forEach(function(column,index) {
 			// Calculate the baseline average for each category and store it
 			let catAverage = store.getters.categoryAverage(column);
 
@@ -549,7 +554,7 @@ const getters = {
 	bestScores: (state, getters) => {
 		const list = getters.filteredScores;
 		const result = {};
-		state.config.key_columns.forEach(col => {
+		scoredColumns(state.config).forEach(col => {
 			let max = undefined;
 			for (const player of list) {
 				const val = player.scoreData[col];
@@ -562,7 +567,7 @@ const getters = {
 	worstScores: (state, getters) => {
 		const list = getters.filteredScores;
 		const result = {};
-		state.config.key_columns.forEach(col => {
+		scoredColumns(state.config).forEach(col => {
 			let min = undefined;
 			for (const player of list) {
 				const val = player.scoreData[col];
@@ -584,7 +589,7 @@ const store = createStore({
 	mutations,
 	actions,
 	getters,
-	plugins: [(new VuexPersistence()).plugin]
+	plugins: [persistPlugin]
 });
 
 const toNumber = function(value) {

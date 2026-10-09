@@ -77,15 +77,24 @@ export const categoryScore = function(value, average, isNegative) {
 	return roundFloat(isNegative ? 2 - ratio : ratio, 4);
 };
 
+// Every column that gets a score: the key categories plus ranking-only columns, in column order
+export const scoredColumns = function(config) {
+	const columns = new Set([...config.key_columns, ...(config.ranking_only_columns || [])]);
+	return [...columns].sort((a, b) => a - b);
+};
+
+// Scores every scored column; the total only averages the key categories
 export const playerRanking = function(player, config, columnAverages) {
 	const rankings = {};
 	let rankingsSum = 0;
 
-	config.key_columns.forEach(function(column) {
+	scoredColumns(config).forEach(function(column) {
 		const isNegative = config.negative_columns.includes(column);
-		const columnScore = categoryScore(player[column], columnAverages[column], isNegative);
-		rankings[column] = columnScore;
-		rankingsSum = rankingsSum + columnScore;
+		rankings[column] = categoryScore(player[column], columnAverages[column], isNegative);
+	});
+
+	config.key_columns.forEach(function(column) {
+		rankingsSum = rankingsSum + rankings[column];
 	});
 
 	rankings.total = roundFloat(rankingsSum / config.key_columns.length, 4);

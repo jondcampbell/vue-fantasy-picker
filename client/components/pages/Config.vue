@@ -90,7 +90,7 @@
                         </label>
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2">
                         <label>
                             <span class="label">Scoring Categories</span>
                             <select class="field" size="10" multiple v-model="keyColumnsModel">
@@ -103,7 +103,14 @@
                             <select class="field" size="10" multiple v-model="negativeColumnsModel">
                                 <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                             </select>
-                            <p class="help">E.g. turnovers. Only counts if also a scoring category.</p>
+                            <p class="help">E.g. turnovers. Applies to scoring and ranking-only columns.</p>
+                        </label>
+                        <label>
+                            <span class="label">Ranking Only</span>
+                            <select class="field" size="10" multiple v-model="rankingOnlyColumnsModel">
+                                <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
+                            </select>
+                            <p class="help">Scored and rankable, but not counted in the overall score.</p>
                         </label>
                         <label>
                             <span class="label">Season Totals</span>
@@ -204,6 +211,15 @@
                 set(values) {
                     const nums = values.map(v => parseInt(v));
                     this.$store.dispatch('changeConfigSetting', { config_key: 'negative_columns', config_value: nums });
+                }
+            },
+            rankingOnlyColumnsModel: {
+                get() {
+                    return this.$store.state.config.ranking_only_columns;
+                },
+                set(values) {
+                    const nums = values.map(v => parseInt(v));
+                    this.$store.dispatch('changeConfigSetting', { config_key: 'ranking_only_columns', config_value: nums });
                 }
             },
             yearlyTotalColumnsModel: {
