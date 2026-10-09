@@ -8,7 +8,8 @@ import {
 	playerRanking,
 	countAboveAverage,
 	scoredColumns,
-	overallColumns
+	overallColumns,
+	puntableColumns
 } from '../../client/store/scoring';
 
 // Columns: 0 id, 1 name, 2 games, 3 total minutes, 4 points (per game), 5 turnovers (per game)
@@ -166,5 +167,23 @@ describe('countAboveAverage', () => {
 		expect(countAboveAverage({ [PTS]: 1.2, [TOV]: 0.8, total: 1 }, [PTS, TOV])).toBe(1);
 		expect(countAboveAverage({ [PTS]: 1.2, [TOV]: 1.1, total: 1.15 }, [PTS, TOV])).toBe(2);
 		expect(countAboveAverage({ [PTS]: 1, [TOV]: 1, total: 1 }, [PTS, TOV])).toBe(0);
+	});
+});
+
+describe('punted categories', () => {
+	const BLK = 6;
+
+	it('stay scored but leave the total, and ranking-only still wins', () => {
+		const config = makeConfig({ key_columns: [PTS, TOV, BLK], ranking_only_columns: [BLK], punt_columns: [TOV] });
+		expect(puntableColumns(config)).toEqual([PTS, TOV]);
+		expect(overallColumns(config)).toEqual([PTS]);
+		expect(scoredColumns(config)).toEqual([PTS, TOV, BLK]);
+		const ranking = playerRanking([1, 'P', 20, 600, 30, 1, 3], config, { [PTS]: 20, [TOV]: 2, [BLK]: 1 });
+		expect(ranking[TOV]).toBe(1.5);
+		expect(ranking.total).toBe(1.5);
+	});
+
+	it('ignores punts for columns that are no longer scoring categories', () => {
+		expect(overallColumns(makeConfig({ punt_columns: [9] }))).toEqual([PTS, TOV]);
 	});
 });

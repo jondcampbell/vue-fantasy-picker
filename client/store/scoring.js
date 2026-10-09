@@ -83,11 +83,17 @@ export const scoredColumns = function(config) {
 	return [...columns].sort((a, b) => a - b);
 };
 
-// Columns averaged into the overall score: scoring categories that aren't ranking-only. Ranking-only always
+// Scoring categories that can count in the overall score: everything but ranking-only. Ranking-only always
 // wins, so you can ignore a league category (e.g. BLK, TO) in your own rankings while still ranking by it.
-export const overallColumns = function(config) {
+export const puntableColumns = function(config) {
 	const rankingOnly = config.ranking_only_columns || [];
 	return config.key_columns.filter(column => !rankingOnly.includes(column));
+};
+
+// Columns averaged into the overall score: puntable categories you aren't currently punting
+export const overallColumns = function(config) {
+	const punted = config.punt_columns || [];
+	return puntableColumns(config).filter(column => !punted.includes(column));
 };
 
 // Scores every scored column; the total only averages the overall columns

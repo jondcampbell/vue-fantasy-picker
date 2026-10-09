@@ -57,6 +57,9 @@ export const restoreState = function(defaults, saved) {
 		state.active_dataset = 'csv';
 	}
 
+	// "Top Players" was never used by the scoring and has been removed
+	delete state.config.top_players;
+
 	return state;
 };
 

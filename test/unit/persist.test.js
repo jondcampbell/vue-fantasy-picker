@@ -29,6 +29,11 @@ describe('restoreState', () => {
 		expect(state.my_team).toEqual(['abc01']);
 	});
 
+	it('drops the removed Top Players setting', () => {
+		const saved = { config: { top_players: 5, ranking_only_columns: [3], yearly_total_columns: [3, 4, 5] } };
+		expect('top_players' in restoreState(defaults(), saved).config).toBe(false);
+	});
+
 	it('fills settings missing from saved state with defaults', () => {
 		const saved = { config: { key_columns: [5], yearly_total_columns: [3, 4, 5], ranking_only_columns: [3] } };
 		expect(restoreState(defaults(), saved).config.min_games_played).toBe(10);

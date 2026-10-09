@@ -13,7 +13,6 @@ import { fetchLeague, parseLeague } from '../sources/espnLeague'
 
 const defaultState = () => ({
 	config: {
-		top_players: 5,
 		teams_in_league:12,
 		players_per_team:13,
 		average_mode: 1,
@@ -47,6 +46,9 @@ const defaultState = () => ({
 			26,
 			27
 		],
+		// Categories you're punting for now (draft strategy): still scored and rankable, left out of the total.
+		// Separate from ranking_only_columns so clearing punts never touches that choice.
+		punt_columns: [],
 		key_columns:[
 			10,
 			11,
@@ -576,6 +578,18 @@ export const usePickerStore = defineStore('picker', {
 		},
 		changeActiveFilter(filter) {
 			this.active_filter = filter;
+		},
+		// Punt a scoring category (or stop punting it); always keeps at least one category in the total
+		togglePunt(column) {
+			const punted = this.config.punt_columns || [];
+			if (punted.includes(column)) {
+				this.changeConfigSetting({ config_key: 'punt_columns', config_value: punted.filter(entry => entry !== column) });
+			} else if (overallColumns(this.config).length > 1) {
+				this.changeConfigSetting({ config_key: 'punt_columns', config_value: [...punted, column] });
+			}
+		},
+		clearPunts() {
+			this.changeConfigSetting({ config_key: 'punt_columns', config_value: [] });
 		},
 		changeFitsOpenSlots(value) {
 			this.fits_open_slots = value;

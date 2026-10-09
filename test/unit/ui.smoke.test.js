@@ -69,7 +69,8 @@ describe('UI smoke test', () => {
 		expect(rows[0].find('td').text()).toBe('1');
 		expect(wrapper.findAll('td.text-good').length).toBeGreaterThan(0);
 		expect(wrapper.findAll('td.text-bad').length).toBeGreaterThan(0);
-		expect(wrapper.findAll('main .pill').length).toBe(store.keyColumns.length + 1 + store.config.ranking_only_columns.length);
+		// Punt chips (one per league category) plus Rank by: Overall, the categories, then ranking-only
+		expect(wrapper.findAll('main .pill').length).toBe(store.keyColumns.length * 2 + 1 + store.config.ranking_only_columns.length);
 	});
 
 	it('re-ranks when a category header or pill is clicked', async () => {
@@ -99,6 +100,31 @@ describe('UI smoke test', () => {
 		expect(perGame(ranked[0].playerKey)).toBeLessThanOrEqual(perGame(ranked[ranked.length - 1].playerKey));
 		expect(store.scores.map(p => p.scoreData.total)).toEqual(totalsBefore);
 		await store.changeActiveCategory('total');
+	});
+
+	it('punts a category: out of Overall, still rankable, ranking-only untouched', async () => {
+		const ftIndex = store.columns.indexOf('FT%');
+		const rankingOnly = [...store.config.ranking_only_columns];
+		const totalsBefore = store.scores.map(p => p.scoreData.total);
+		const puntPill = () => wrapper.findAll('main nav')[0].findAll('.pill').find(p => p.text() === 'FT%');
+
+		await puntPill().trigger('click');
+		expect(store.config.punt_columns).toEqual([ftIndex]);
+		expect(puntPill().attributes('aria-pressed')).toBe('true');
+		expect(store.scores.map(p => p.scoreData.total)).not.toEqual(totalsBefore);
+		expect(store.config.ranking_only_columns).toEqual(rankingOnly);
+		expect(wrapper.find('th button[title="Rank by FT% (not counted in Overall)"]').text()).toBe('FT%*');
+
+		// The last category left in Overall can't be punted
+		store.changeConfigSetting({ config_key: 'punt_columns', config_value: [] });
+		const puntable = store.keyColumns.length;
+		store.config.key_columns.filter(column => !rankingOnly.includes(column)).forEach(column => store.togglePunt(column));
+		expect(store.config.punt_columns.length).toBe(puntable - 1);
+
+		await nextTick();
+		await wrapper.findAll('button').find(b => b.text() === 'Clear punts').trigger('click');
+		expect(store.config.punt_columns).toEqual([]);
+		expect(store.scores.map(p => p.scoreData.total)).toEqual(totalsBefore);
 	});
 
 	it('toggles a player onto my team from the table', async () => {

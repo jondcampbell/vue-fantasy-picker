@@ -36,10 +36,6 @@
                         <input class="field" type="number" min="1" step="1" :value="players_per_team" @input="setNumber('players_per_team', 1, $event)" @blur="resetNumber('players_per_team', $event)"/>
                     </label>
                     <label>
-                        <span class="label">Top Players</span>
-                        <input class="field" type="number" min="1" step="1" :value="top_players" @input="setNumber('top_players', 1, $event)" @blur="resetNumber('top_players', $event)"/>
-                    </label>
-                    <label>
                         <span class="label">Minimum Games Played</span>
                         <input class="field" type="number" min="0" step="1" :value="min_games_played" @input="setNumber('min_games_played', 0, $event)" @blur="resetNumber('min_games_played', $event)"/>
                     </label>
@@ -260,7 +256,6 @@
                 average_pool_size: state => state.config.average_pool_size,
                 teams_in_league: state => state.config.teams_in_league,
                 players_per_team: state => state.config.players_per_team,
-                top_players: state => state.config.top_players,
                 min_games_played: state => state.config.min_games_played,
                 min_minutes_played: state => state.config.min_minutes_played,
 

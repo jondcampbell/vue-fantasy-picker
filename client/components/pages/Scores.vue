@@ -2,7 +2,7 @@
     <div class="space-y-5">
         <header class="space-y-3">
             <h2 class="page-title">Rankings</h2>
-            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score.</template><template v-if="showProj"> Proj is the same score from ESPN's projected stats.</template></p>
+            <p class="page-subtitle">Ranked by <span class="font-medium text-fg">{{ $store.activeCategoryName }}</span>. Scores are relative to the category baseline: 1.00 is average.<template v-if="rankingOnlyCategories.length > 0"> Columns marked * are rankable but not counted in the overall score (ranking-only or punted).</template><template v-if="showProj"> Proj is the same score from ESPN's projected stats.</template></p>
             <dataset-switcher></dataset-switcher>
         </header>
 
@@ -14,6 +14,18 @@
         <player-list-scoring :players="filteredPlayers" v-if="! $store.search_text && position == 'all' && filteredPlayers.length > 0"></player-list-scoring>
 
         <div class="card overflow-hidden" v-if="filteredPlayers.length > 0">
+            <div class="flex items-center gap-3 border-b border-line px-3 py-2" v-if="puntCategories.length > 1">
+                <span class="label mb-0 shrink-0">Punt</span>
+                <nav class="flex min-w-0 gap-1 overflow-x-auto">
+                    <button type="button" class="pill cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" v-for="category in puntCategories" :key="category.key"
+                        :class="{ 'bg-bad/15 text-bad line-through hover:bg-bad/20 hover:text-bad': category.punted }"
+                        :aria-pressed="category.punted ? 'true' : 'false'"
+                        :disabled="!category.punted && overallCount <= 1"
+                        :title="category.punted ? `Count ${category.label} in the Overall score again` : `Punt ${category.label}: leave it out of the Overall score`"
+                        @click="$store.togglePunt(category.key)">{{ category.label }}</button>
+                    <button type="button" class="btn btn-ghost shrink-0 px-2 py-1 text-xs" v-if="puntedCount > 0" @click="$store.clearPunts()">Clear punts</button>
+                </nav>
+            </div>
             <div class="flex items-center gap-3 border-b border-line px-3 py-2">
                 <span class="label mb-0 shrink-0">Rank by</span>
                 <nav class="flex min-w-0 gap-1 overflow-x-auto">
@@ -23,7 +35,7 @@
                     <template v-if="rankingOnlyCategories.length > 0">
                         <span class="mx-1 my-1 w-px shrink-0 bg-line" aria-hidden="true"></span>
                         <button type="button" class="pill cursor-pointer" v-for="category in rankingOnlyCategories" :key="category.key"
-                            :class="{ 'pill-active': isActive(category.key) }" :title="`${category.label} is not counted in the Overall score`"
+                            :class="{ 'pill-active': isActive(category.key) }" :title="category.punted ? `${category.label} is punted: not counted in the Overall score` : `${category.label} is not counted in the Overall score`"
                             @click="changeCategory(category.key)">{{ category.label }}</button>
                     </template>
                 </nav>
@@ -77,7 +89,7 @@
     import PlayerSummary from 'components/partials/PlayerSummary.vue';
     import PlayerFiltering from 'components/partials/PlayerFiltering.vue';
     import PlayerListScoring from 'components/partials/PlayerListScoring.vue';
-    import { scoredColumns } from 'store/scoring';
+    import { scoredColumns, overallColumns, puntableColumns } from 'store/scoring';
     import TableFooter from 'components/partials/TableFooter.vue';
     import DatasetSwitcher from 'components/partials/DatasetSwitcher.vue';
     import rowLimit from 'components/mixins/rowLimit.js';
@@ -110,14 +122,17 @@
             // Scored columns in table order (column index order, matching scoreData), then the overall score
             sortableColumns() {
                 const state = this.$store;
-                const rankingOnly = state.config.ranking_only_columns || [];
+                const overall = overallColumns(state.config);
+                const punted = state.config.punt_columns || [];
+                // rankingOnly: scored but not in the Overall score (ranking-only or punted)
                 const columns = scoredColumns(state.config).map(index => ({
                     key: index,
                     label: state.columns[index],
                     header: state.columns[index],
-                    rankingOnly: rankingOnly.includes(index)
+                    rankingOnly: !overall.includes(index),
+                    punted: punted.includes(index)
                 }));
-                return [...columns, { key: 'total', label: 'Overall', header: 'Score', rankingOnly: false }];
+                return [...columns, { key: 'total', label: 'Overall', header: 'Score', rankingOnly: false, punted: false }];
             },
             categories() {
                 const columns = this.sortableColumns.filter(column => !column.rankingOnly);
@@ -125,6 +140,22 @@
             },
             rankingOnlyCategories() {
                 return this.sortableColumns.filter(column => column.rankingOnly);
+            },
+            // League categories you could punt (ranking-only ones never count, so they aren't offered)
+            puntCategories() {
+                const config = this.$store.config;
+                const punted = config.punt_columns || [];
+                return puntableColumns(config).slice().sort((a, b) => a - b).map(index => ({
+                    key: index,
+                    label: this.$store.columns[index],
+                    punted: punted.includes(index)
+                }));
+            },
+            puntedCount() {
+                return this.puntCategories.filter(category => category.punted).length;
+            },
+            overallCount() {
+                return this.puntCategories.length - this.puntedCount;
             },
             position() {
                 return this.$store.active_position;
