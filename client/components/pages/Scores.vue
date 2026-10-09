@@ -111,7 +111,7 @@
                     key: index,
                     label: state.columns[index],
                     header: state.columns[index],
-                    rankingOnly: rankingOnly.includes(index) && !state.config.key_columns.includes(index)
+                    rankingOnly: rankingOnly.includes(index)
                 }));
                 return [...columns, { key: 'total', label: 'Overall', header: 'Score', rankingOnly: false }];
             },

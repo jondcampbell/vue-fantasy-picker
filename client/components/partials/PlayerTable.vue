@@ -27,6 +27,7 @@
     import PlayerRow from 'components/partials/PlayerRow.vue';
     import TableFooter from 'components/partials/TableFooter.vue';
     import rowLimit from 'components/mixins/rowLimit.js';
+    import { overallColumns } from 'store/scoring';
 
     export default {
         mixins: [rowLimit],
@@ -37,9 +38,10 @@
             // Cell classes per column, computed once for the whole table instead of per cell
             columnClasses() {
                 const config = this.$store.config;
+                const overall = overallColumns(config);
                 return this.$store.columns.map((column, column_index) => ({
                     'pin left-28 font-medium': column_index == config.name_column,
-                    'key-col font-medium': config.key_columns.includes(column_index),
+                    'key-col font-medium': overall.includes(column_index),
                     'text-muted': column_index == config.pos_column
                 }));
             }
@@ -49,7 +51,7 @@
                 const config = this.$store.config;
                 return {
                     'pin left-28': column_index == config.name_column,
-                    'text-accent': config.key_columns.includes(column_index)
+                    'text-accent': overallColumns(config).includes(column_index)
                 }
             }
         },

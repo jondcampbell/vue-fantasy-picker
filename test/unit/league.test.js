@@ -135,8 +135,14 @@ describe('syncLeague', () => {
 		expect(store.my_team).toEqual([`espn:${espnId('Nikola Jokic')}`]);
 		expect(store.config.key_columns).toEqual([10, 11, 20, 23, 24, 25, 26, 27, 29]);
 		expect(store.config.negative_columns).toEqual([27]);
-		// BLK and TOV are now league categories, so no longer ranking-only
-		expect(store.config.ranking_only_columns).toEqual([]);
+		// Your Ranking Only choice survives the sync: BLK and TOV stay out of your overall score
+		expect(store.config.ranking_only_columns).toEqual([26, 27]);
+		expect(store.keyColumns).not.toContain('BLK');
+		expect(store.keyColumns).not.toContain('TOV');
+		const jokic = store.scores.find(score => score.playerName === 'Nikola Jokic').scoreData;
+		const overall = [10, 11, 20, 23, 24, 25, 29];
+		expect(jokic.total).toBeCloseTo(overall.reduce((sum, column) => sum + jokic[column], 0) / overall.length, 3);
+		expect(jokic[26]).toBeGreaterThan(0);
 		expect(store.config.roster_slots.length).toBe(15);
 	});
 

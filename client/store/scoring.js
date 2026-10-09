@@ -83,7 +83,14 @@ export const scoredColumns = function(config) {
 	return [...columns].sort((a, b) => a - b);
 };
 
-// Scores every scored column; the total only averages the key categories
+// Columns averaged into the overall score: scoring categories that aren't ranking-only. Ranking-only always
+// wins, so you can ignore a league category (e.g. BLK, TO) in your own rankings while still ranking by it.
+export const overallColumns = function(config) {
+	const rankingOnly = config.ranking_only_columns || [];
+	return config.key_columns.filter(column => !rankingOnly.includes(column));
+};
+
+// Scores every scored column; the total only averages the overall columns
 export const playerRanking = function(player, config, columnAverages) {
 	const rankings = {};
 	let rankingsSum = 0;
@@ -93,11 +100,12 @@ export const playerRanking = function(player, config, columnAverages) {
 		rankings[column] = categoryScore(player[column], columnAverages[column], isNegative);
 	});
 
-	config.key_columns.forEach(function(column) {
+	const overall = overallColumns(config);
+	overall.forEach(function(column) {
 		rankingsSum = rankingsSum + rankings[column];
 	});
 
-	rankings.total = roundFloat(rankingsSum / config.key_columns.length, 4);
+	rankings.total = overall.length > 0 ? roundFloat(rankingsSum / overall.length, 4) : 0;
 	return rankings;
 };
 

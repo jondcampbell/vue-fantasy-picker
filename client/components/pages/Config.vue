@@ -103,7 +103,7 @@
                             <select class="field" size="10" multiple v-model="keyColumnsModel">
                                 <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                             </select>
-                            <p class="help">Columns that are scored and ranked.</p>
+                            <p class="help">Columns that are scored and ranked; set from your league by Sync league.</p>
                         </label>
                         <label>
                             <span class="label">Lower Is Better</span>
@@ -117,7 +117,7 @@
                             <select class="field" size="10" multiple v-model="rankingOnlyColumnsModel">
                                 <option v-for="(col, idx) in available_columns_simple" :key="idx" :value="col">{{ columnLabel(col) }}</option>
                             </select>
-                            <p class="help">Scored and rankable, but not counted in the overall score.</p>
+                            <p class="help">Scored and rankable, but never counted in your overall score, even if it's a scoring category (e.g. a league category you want to ignore). League sync leaves this alone.</p>
                         </label>
                         <label>
                             <span class="label">Season Totals</span>

@@ -12,6 +12,8 @@
 </template>
 
 <script>
+    import { overallColumns } from 'store/scoring';
+
     export default {
         props: ['players'],
         methods: {
@@ -25,7 +27,8 @@
         computed: {
             teamScores() {
                 let players = this.players;
-                let key_columns = this.$store.config.key_columns;
+                // Same columns, in the same (column) order, as $store.keyColumns
+                let key_columns = overallColumns(this.$store.config).slice().sort((a, b) => a - b);
                 let scores = [];
                 key_columns.forEach((column) => {
                     let columnTotal = 0;

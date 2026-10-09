@@ -1,6 +1,6 @@
 import { markRaw, toRaw } from 'vue'
 import { createPinia, defineStore } from 'pinia'
-import { meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns } from './scoring'
+import { meetsMinimums, categoryAverage, playerRanking, countAboveAverage, scoredColumns, overallColumns } from './scoring'
 import { persist } from './persist'
 import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots } from './roster'
 import { detectKeyColumn, detectEspnColumn, detectTeamColumn, computeKeys, reconcileKeys, isNameKey, ESPN_PREFIX } from './identity'
@@ -115,7 +115,7 @@ const scoreRows = function(players, config, rowKeys) {
 	});
 	const scores = players.filter(player => meetsMinimums(player, config)).map(player => {
 		const scoreData = playerRanking(player, config, averages);
-		scoreData.aboveAverage = countAboveAverage(scoreData, config.key_columns);
+		scoreData.aboveAverage = countAboveAverage(scoreData, overallColumns(config));
 		return {
 			playerKey: rowKeys.get(player),
 			scoreData: scoreData,
@@ -139,10 +139,10 @@ export const usePickerStore = defineStore('picker', {
 	state: defaultState,
 
 	getters: {
+		// Names of the columns counted in the overall score (scoring categories minus ranking-only)
 		keyColumns: (state) => {
-			return state.columns.filter(function(column, index) {
-				return state.config.key_columns.includes(index);
-			});
+			const overall = overallColumns(state.config);
+			return state.columns.filter((column, index) => overall.includes(index));
 		},
 		activeCategoryName: (state) => {
 			if (state.active_category == 'total') {
@@ -479,8 +479,8 @@ export const usePickerStore = defineStore('picker', {
 				throw new Error("Couldn't find your team in the league: check ESPN_SWID in .env.local.");
 			}
 
-			// Settings: lineup slots, scoring categories (lower-is-better ones like TO), and any category
-			// that is now scored stops being ranking-only
+			// Settings: lineup slots and scoring categories (lower-is-better ones like TO). Your Ranking Only
+			// choices are left alone: they keep a league category out of your own overall score.
 			const config = this.config;
 			if (league.rosterSlots.length > 0) {
 				config.roster_slots = league.rosterSlots;
@@ -490,7 +490,6 @@ export const usePickerStore = defineStore('picker', {
 				const index = header => BBREF_COLUMNS.indexOf(header);
 				config.key_columns = scored.map(category => index(category.column)).sort((a, b) => a - b);
 				config.negative_columns = scored.filter(category => category.reverse).map(category => index(category.column)).sort((a, b) => a - b);
-				config.ranking_only_columns = (config.ranking_only_columns || []).filter(column => !config.key_columns.includes(column));
 			}
 
 			// Rosters

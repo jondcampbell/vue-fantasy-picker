@@ -7,7 +7,8 @@ import {
 	categoryScore,
 	playerRanking,
 	countAboveAverage,
-	scoredColumns
+	scoredColumns,
+	overallColumns
 } from '../../client/store/scoring';
 
 // Columns: 0 id, 1 name, 2 games, 3 total minutes, 4 points (per game), 5 turnovers (per game)
@@ -142,6 +143,21 @@ describe('ranking-only columns', () => {
 		expect(ranking[BLK]).toBe(3);
 		expect(ranking[TOV]).toBe(1.5);
 		expect(ranking.total).toBe(1.5);
+	});
+});
+
+describe('ranking-only takes precedence over scoring categories', () => {
+	it('keeps a scoring category that is also ranking-only out of the total', () => {
+		const config = makeConfig({ key_columns: [PTS, TOV], ranking_only_columns: [TOV] });
+		expect(overallColumns(config)).toEqual([PTS]);
+		const ranking = playerRanking(player(1, 30, 1), config, { [PTS]: 20, [TOV]: 2 });
+		expect(ranking[TOV]).toBe(1.5);
+		expect(ranking.total).toBe(1.5);
+	});
+
+	it('gives a total of 0 when every category is ranking-only', () => {
+		const config = makeConfig({ key_columns: [PTS], ranking_only_columns: [PTS] });
+		expect(playerRanking(player(1, 30, 1), config, { [PTS]: 20 }).total).toBe(0);
 	});
 });
 
