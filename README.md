@@ -49,6 +49,10 @@ To use a CSV instead, open the season's **Player Totals** table on Basketball-Re
 
 Before your draft, only lineup slots and scoring categories sync; rosters sync as soon as any team has players. If ESPN rejects the cookies later, copy fresh values into `.env.local`.
 
+### State snapshot
+
+While `pnpm dev` or `pnpm preview` is running, the app keeps `.local/state.json` (git-ignored) up to date with your team, taken players, watch list and every league team's roster from the last sync, with player names. It's for reading your lists outside the browser; the app itself still saves to localStorage.
+
 ## Commands
 
 | Command | What it does |

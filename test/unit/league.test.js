@@ -160,6 +160,8 @@ describe('syncLeague', () => {
 		expect(store.watch_list).toEqual([key('Victor Wembanyama')]);
 		expect(store.list_names['espn:5555555']).toBe('Rookie Prospect');
 		expect(store.league.syncedAt).toBe(NOW.getTime());
+		// Each team's roster is kept for the state snapshot
+		expect(store.league.rosters.map(team => [team.name, team.mine, team.players.length])).toEqual([['My Squad', true, 4], ['Rivals', false, 1]]);
 	});
 
 	it('shows rostered players with no stats on the roster without flagging them', async () => {

@@ -2,6 +2,7 @@ import { markRaw, toRaw } from 'vue'
 import { createPinia, defineStore } from 'pinia'
 import { meetsMinimums, categoryBaselines, weightedColumns, perGame, playerRanking, countAboveAverage, scoredColumns, overallColumns } from './scoring'
 import { persist } from './persist'
+import { shareSnapshot } from './snapshot'
 import { POSITIONS, DEFAULT_SLOTS, assignRoster, openSlots, openSlotChecker, isStarterSlot } from './roster'
 import { detectKeyColumn, detectEspnColumn, detectTeamColumn, computeKeys, reconcileKeys, isNameKey, ESPN_PREFIX } from './identity'
 import { normalizeRows } from './normalize'
@@ -573,6 +574,8 @@ export const usePickerStore = defineStore('picker', {
 				teamName: league.myTeam?.name || '',
 				teams: league.teams.length,
 				drafted: league.drafted,
+				// Every team's players by ESPN ID (the lists only know mine vs taken), for the state snapshot
+				rosters: league.teams.map(team => ({ name: team.name, abbrev: team.abbrev, mine: team.mine, players: team.players })),
 				syncedAt: now.getTime(),
 				skippedCategories: league.categories.filter(category => !category.column).map(category => category.name)
 			};
@@ -792,6 +795,10 @@ export const useStore = function() {
 		} else if (store.players.length > 0) {
 			store.reconcileLists();
 			store.evaluatePlayers();
+		}
+		// Lists summary for .local/state.json via the dev/preview server (never in tests)
+		if (import.meta.env.MODE !== 'test' && typeof window !== 'undefined') {
+			shareSnapshot(store);
 		}
 	}
 	return store;

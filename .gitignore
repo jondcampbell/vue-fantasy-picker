@@ -5,3 +5,6 @@ node_modules
 
 # Local secrets (ESPN league cookies)
 .env*.local
+
+# State snapshot written by the dev server
+/.local
